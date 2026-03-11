@@ -1,0 +1,33 @@
+# OS
+.DS_Store
+
+# IDE
+.idea/
+*.swp
+*.swo
+/.vscode
+
+# Local testing
+/.claude/settings.json
+.claude/settings.local.json
+hook-logs/
+
+# Temp files
+*.tmp
+*.log
+
+# Local
+/reference
+/hook-logs
+
+# Template - never commit real credentials
+template/.env
+template/.env.local
+
+__pycache__/
+*.pyc
+
+# githooks
+.githooks
+
+CLAUDE.local.md

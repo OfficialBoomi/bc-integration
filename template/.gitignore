@@ -1,0 +1,20 @@
+# Credentials
+.env
+.env.local
+
+# Sync state
+.sync-state/
+
+# Activity log
+.activity-log/
+
+# Logs
+hook-logs/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+
+# OS
+.DS_Store
