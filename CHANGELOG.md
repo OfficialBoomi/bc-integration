@@ -2,6 +2,16 @@
 
 All notable changes are documented here.
 
+## 0.5.7
+
+- Add Trading Partner component reference (`trading_partner_component.md`) — classification, X12 partner info, AS2 configuration, DocumentTypes, tracked fields, API enforcement summary from runtime-validated experiments
+- Add Trading Partner steps reference (`trading_partner_steps.md`) — TP Start/Send shapes, output paths with all 4 validated configurations, path execution order, inbound validation and error routing by standard, populated TradingPartners/MyCompanies structure
+- Add Dragpoints and Output Path Wiring section to BOOMI_THINKING.md — `<dragpoints>` required on every shape, `toShape="unset"` convention, partial wiring support (all runtime-validated)
+- Add Document Tracking section to BOOMI_THINKING.md — account-level custom tracked fields, CustomTrackedField API
+- Add Trading Partner Start to process component decision table (`allowSimultaneous="true"`)
+- Add cross-reference from start_step.md to trading_partner_steps.md
+- Fix stale Contents entries in trading_partner_component.md
+
 ## 0.5.6
 
 - Add Route step reference (`route_step.md`) — runtime-validated via toggle tests covering default path routing, first-match-wins evaluation (XML element order, not key attribute), case-sensitive equals, and per-document batch evaluation

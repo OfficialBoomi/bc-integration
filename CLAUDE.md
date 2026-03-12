@@ -10,7 +10,7 @@ Users add the marketplace and install:
 /plugin install bc-integration@boomi-marketplace
 ```
 
-Alternatively they can navigate through the /plugin command within claude and add the repo/ plugins visually: `git@bitbucket.org:officialboomi/boomi-marketplace.git`
+Alternatively they can navigate through the /plugin command within claude and add the repo/ plugins visually: `git@github.com:OfficialBoomi/boomi-marketplace.git`
 
 Updates are generally automatically applied when opening a new Claude Code session, or can be manually added via the `/plugin` menu.
 

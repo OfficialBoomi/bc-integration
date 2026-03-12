@@ -31,3 +31,5 @@ __pycache__/
 .githooks
 
 CLAUDE.local.md
+
+/.feature-analysis-projects
