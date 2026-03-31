@@ -33,7 +33,10 @@
       "Bash(git branch:*)",
       "Bash(git fetch:*)"
     ],
-    "deny": [],
+    "deny": [
+      "Read(**/.env*)",
+      "Bash(*.env*)"
+    ],
     "ask": [
       "Bash(git push:*)",
       "Bash(git merge:*)",

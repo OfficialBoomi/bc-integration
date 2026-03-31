@@ -49,8 +49,6 @@ When `configure-template-workspace` is re-run in the template folder the AI merg
 - Agents: yaml/md definitions for specialized tasks, auto-invoked by context
 - CLAUDE.local.md adds an additional layer of personalization outside the version control of the main plugin. E.g. a developer might use it to point Claude to local reference assets specific to their machine.
 
-- **Important** Always bump version in `.claude-plugin/plugin.json` before creating a pull request to main (if you see the command `/commit-push-pr` the first step is to increment the version number). Also when doing that append the current changes to `CHANGELOG.md`
-
 ## Skill Repos
 
 Skills (e.g. `skills/boomi-integration/`) live in this plugin repo as the source of truth. On push to main, the CI pipeline mirrors each skill out to its own standalone repo (via rsync) so the skill can also be consumed independently. There is no nested `.git` — just one repo tracking everything.

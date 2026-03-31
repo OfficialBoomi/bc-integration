@@ -21,12 +21,11 @@ The user can also select "Other" to provide a custom path.
 
 ### Step 2: Find the Plugin's Template Directory
 
-Before copying, locate the `template/` directory inside the bc-integration plugin. Search these locations in order:
+Before copying, locate the `template/` directory inside the bc-integration plugin. Try these approaches in order:
 
-1. **Standard plugin cache** — `~/.claude/plugins/cache/boomi-marketplace/bc-integration/*/template` (pick the latest version if multiple exist)
-2. **Common local folders** — Use a glob search for `**/bc-integration/template/CLAUDE.md` under `~/Desktop`, `~/Documents`, and `~/Downloads` to find locally-extracted copies (this would be the scenario when a user is launching the claude code session specifying a non-standard directory with the --plugin-dir flag)
-  - Note that on a Windows + WSL setup this will likely require a `/mnt/c/` prefix
-3. **Ask the user** — If neither search finds a `template/` directory, ask: *"I couldn't auto-detect the bc-integration plugin location. Where did you extract or clone the plugin folder?"*
+1. **Derive from skill path** — Invoke the `boomi-integration` skill (or check if it's already loaded). The skill's base directory reveals the plugin filesystem path (e.g., `.../bc-integration/skills/boomi-integration` → plugin root is `.../bc-integration`). This works regardless of whether the plugin was installed from the marketplace or loaded via `--plugin-dir`.
+2. **Standard plugin cache** — `~/.claude/plugins/cache/boomi-marketplace/bc-integration/*/template` (pick the latest version if multiple exist)
+3. **Ask the user** — If neither approach finds a `template/` directory, ask: *"I couldn't auto-detect the bc-integration plugin location. Where did you extract or clone the plugin folder?"*
 
 Store the discovered path as `PLUGIN_DIR` (the bc-integration root) for later use.
 
@@ -39,18 +38,10 @@ Store the discovered path as `PLUGIN_DIR` (the bc-integration root) for later us
 
 **If the folder already exists:**
 - Perform a smart merge:
-  - **PRESERVE**: `.env`, `.env.local`, any files they've added
+  - **PRESERVE**: `.env`, `.env.local`, `preferred_connections.md` (user's connection registry), any files they've added
   - **UPDATE**: Directory structure, `.gitignore`, `.env.example`, `README.md`, `CLAUDE.md`
   - **ASK** about conflicts if unsure
 - Report what was updated vs preserved
-
-**Update the template settings**
-Find the /.claude/settings.json file within the newly copied template folder. If you see any `<replace>` placeholders in the approved paths, replace those with the users actual directory name. 
-
-Example: 
-"Bash(python /Users/<replace>/.claude/plugins/cache/boomi-marketplace/bc-integration/:*)",
-should become:
-"Bash(python /Users/jsmith/.claude/plugins/cache/boomi-marketplace/bc-integration/:*)",
 
 ### Step 4: Generate Global Command
 

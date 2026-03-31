@@ -19,7 +19,7 @@ If your `.env` file wasn't configured during project creation:
 cp .env.example .env  # Edit with your platform credentials
 ```
 
-Alternatively, ask claude to help you setup your .env variables (platform account ID, API key, etc). It can guide you through credential setup interactively.
+Ask Claude to help you find your credentials in the Boomi platform — it will walk you through where each value lives (API tokens, account ID, environment IDs, etc.). You paste the values into `.env` yourself. See the [plugin README](https://github.com/OfficialBoomi/bc-integration/blob/main/README.md) for credential handling best practices.
 
 ## Directory Structure of the Template
 

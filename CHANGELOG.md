@@ -2,6 +2,86 @@
 
 All notable changes are documented here.
 
+## 0.5.20
+
+- Add `.env` credential steering via deny rules in template workspace settings
+- Add `boomi-env-check.sh` — checks which `.env` variables are set without revealing values
+- Update env-setup-guide to use connection test and direct users to paste credentials themselves
+- Simplify configure-template-workspace plugin discovery (derive path from skill base directory)
+- Add descending sort by executionTime to `boomi-execution-query.sh`
+
+## 0.5.19
+
+- Add BSD-2-Clause license at repo root and skill directory
+- Remove CONTRIBUTING.md per open-source counsel guidance (issue/feedback guidance moved to READMEs)
+- Update READMEs with official "Boomi Companion" name, license reference, and feedback section
+
+## 0.5.18
+
+- Fix `notify_step.md` and `route_step.md`: correct docs that claimed `valueType="track"` works for DPPs — it only reads DDPs. DPPs require `valueType="process"` with `<processparameter>` (ref: error reference Issue #24, BIG-981)
+
+## 0.5.17
+
+- Add Document Cache component reference (`document_cache_component.md`) — component structure, attributes, CacheIndex/key type polymorphism (ProfileElementKeyConfig, DocumentPropertyKeyConfig, UserDefKeyConfig unsupported), non-zero ID requirements, profileType enforcement, map lookup constraints (DocumentCacheLookup vs DocumentCacheJoins)
+- Add Document Cache steps reference (`document_cache_steps.md`) — Add to Cache (document sink behavior), Retrieve From Cache (all-documents and by-index modes, emptyCacheBehavior), Remove From Cache (all-documents and by-key modes), cache lookup as parameter source, common patterns (branch-based, multi-source join, temporary collection), scope/lifecycle, Molecule/Cloud node considerations
+- Register Document Cache component and steps in SKILL.md file index
+
+## 0.5.16
+
+- Add Branch & Merge support: `boomi-branch.sh` CLI tool, `--branch` flag on pull/push/create scripts, branch-aware sync state, `resolve_branch_id`/`resolve_branch_name` helpers
+- Add `branch_merge_guide.md` (tool-oriented) and `branch_merge_api_behavior.md` (runtime-verified API semantics)
+- Fix `boomi-deploy.sh`: rewrite to safe two-step pattern (PackagedComponent → DeployedPackage by packageId). Previous version silently ignored branch context and deployed the globally latest version across all branches.
+- Fix `boomi-component-pull.sh`: handle `--target-path` when value is a directory (auto-generate filename instead of shasum error)
+
+## 0.5.15
+
+- Add `<XMLFlavor><CustomStandardFlavor/></XMLFlavor>` to XML profile minimum configuration template and Critical Notes — GUI-created profiles return an empty `<XMLFlavor/>` on GET that fails schema validation on PUT/POST
+
+## 0.5.14
+
+- Add `valueType="current"` Notify tip to BOOMI_THINKING debugging section
+- Fix SIGPIPE in component-pull: replace `grep -m 1` with `grep | head -1` for large payloads
+- Expand template CLAUDE.md peripheral skill guidance: add marketplace skill reference, guard each with "If available"
+
+## 0.5.13
+
+- Add Agent step reference (`agent_step.md`) — AI Agent shape configuration, model selection, instruction authoring, tool definitions, and guardrails
+- Register Agent step in SKILL.md file index
+
+## 0.5.12
+
+- Add Process Property component reference (`process_property_component.md`) — runtime-validated: component structure, all 5 data types (string/number/boolean/date/password), allowed values enforcement, persistence scoping (per-process, not shared across processes referencing the same component), Set Properties wiring (`valueType="definedparameter"` / `<definedprocessparameter>`), Groovy API, environment extensions pointer
+- Fix `boomi-component-create.sh` silent bug: narrowed componentId sed replacement to empty-string placeholder only, preventing clobber of nested `componentId` references (e.g. `<definedprocessparameter>`) with the newly-created component's ID
+- Add `definedparameter` valueType pointer to `set_properties_step.md` Source Value Types
+- Add `processproperty` → `active-development/process-properties/` to CLI folder mapping table
+- Register process property component in SKILL.md file index
+
+## 0.5.11
+
+- Fix SIGPIPE and shell variable size issues in component-pull — write API response to temp file instead of shell variable, use `grep -m 1` to avoid broken pipes on large payloads
+- Add `stamp_origin_file` fallback to inject `<bns:description>` before `<bns:object>` when no description element exists
+- Replace `grep | head -1` with `grep -m 1` in `xml_attr` utility
+
+## 0.5.10
+
+- Add Cross Reference Table component reference (`cross_reference_table_component.md`) — component structure, match types (exact/wildcard/regex), column indexing, lookup behavior (case-insensitive, first-row-wins, empty-string on no-match, skipLookupIfNoInputs), parameter value source usage, multi-input lookups
+- Add Cross Reference Lookup (§8) to `map_component_functions.md` with minimal example and pointer to full doc
+- Register cross reference table in SKILL.md file index
+
+## 0.5.9
+
+- Add Disk V2 connector reference — connection component (`diskv2_connection_component.md`), operation component (`diskv2_connector_operation_component.md`) with all 7 action types (CREATE, UPSERT, GET, QUERY, LIST, DELETE, LISTEN), and connector step (`diskv2_connector_step.md`)
+- Add Disk V2 LISTEN start configuration to start_step.md
+- Register Disk V2 connector in SKILL.md file index and capability listing
+- Add `connectorType` identifiers to all connector entries in SKILL.md file index for direct string-match discovery from downloaded process XML
+
+## 0.5.8
+
+- Refine instance identifier semantics across JSON, XML, and EDI profile docs — document `identifierKey="-1"` and `identifierName="occurrence"` conventions for occurrence type, add combined value+occurrence expression examples, add `"0"` invalid value warning
+- Add Qualifiers section to JSON profile component — required for GUI visibility of instance identifiers
+- Add occurrence (positional) selection section to JSON profile component with standalone and combined examples
+- Remove XSD references from exception_step.md and provenance language from edi_profile_component.md
+
 ## 0.5.7
 
 - Add Trading Partner component reference (`trading_partner_component.md`) — classification, X12 partner info, AS2 configuration, DocumentTypes, tracked fields, API enforcement summary from runtime-validated experiments
