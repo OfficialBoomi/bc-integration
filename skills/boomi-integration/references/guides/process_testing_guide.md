@@ -175,99 +175,51 @@ The objectName MUST be converted to sentence case (first letter uppercase):
 - `"weather"` → `"Weather"` → `queryWeather`
 ---
 
-Test via direct HTTP calls (WSS listeners expect HTTP requests):
+Test WSS listeners using `boomi-wss-test.sh`, which handles authentication and SSL internally:
 
 ```bash
-# SSL verification helper (add -k flag if SERVER_VERIFY_SSL=false)
-SSL_FLAG=$([ "${SERVER_VERIFY_SSL}" = "false" ] && echo "-k" || echo "")
+# GET endpoint (inputType="none")
+bash scripts/boomi-wss-test.sh --path /ws/simple/getHello --method GET
 
-# Simple GET request (no auth if SERVER_USERNAME/SERVER_TOKEN are empty)
-curl $SSL_FLAG -X GET "${SERVER_BASE_URL}/ws/simple/getHello"
+# POST endpoint with JSON payload
+bash scripts/boomi-wss-test.sh --path /ws/simple/createUser --method POST --data '{"key":"value"}'
 
-# POST with JSON payload (auth-disabled server)
-curl $SSL_FLAG -X POST \
-  -H "Content-Type: application/json" \
-  -d '{"key":"value"}' \
-  "${SERVER_BASE_URL}/ws/simple/endpoint"
-
-# POST with authentication (if SERVER_USERNAME/SERVER_TOKEN are configured)
-curl $SSL_FLAG -X POST \
-  -u "${SERVER_USERNAME}:${SERVER_TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d '{"key":"value"}' \
-  "${SERVER_BASE_URL}/ws/simple/endpoint"
+# POST with payload from file
+bash scripts/boomi-wss-test.sh --path /ws/simple/createOrder --method POST --data payload.json
 ```
 
-**Environment Variable Reference**
-```
-SERVER_BASE_URL=https://your-atom.integrate.boomi.com
-SERVER_USERNAME=your_runtime_username@account.domain  # Leave empty if auth disabled
-SERVER_TOKEN=your_runtime_token                        # Leave empty if auth disabled
-SERVER_VERIFY_SSL=false                                # Set to false for self-signed certs
-```
+Do not use raw curl for WSS endpoint testing — it will be blocked by project permission settings. 
 
-**Usage**: These runtime credentials enable direct HTTP testing of Web Services Server listener processes via curl/Postman, bypassing the platform execution mechanism which cannot test WSS endpoints.
+**Endpoint Path Formula:**
 
-**Authentication:**
-- If `SERVER_USERNAME` and `SERVER_TOKEN` are empty in `.env`, the server may have authentication disabled — test with simple curl commands without Authorization headers. This would most likely apply to a user running a local Boomi Runtime on the same machine as the agent.
-- Only add Authorization header if credentials are configured
+Compute the path from the WSS operation XML before testing:
+1. Read `operationType` and `objectName` from `<WebServicesServerListenAction>`
+2. Path = `/ws/simple/` + `lowercase(operationType)` + `sentenceCase(objectName)`
 
-**MANDATORY PRE-TEST CHECKLIST:**
+Example path formats:
+| operationType | objectName | Path |
+|---|---|---|
+| GET | Hello | /ws/simple/getHello |
+| CREATE | User | /ws/simple/createUser |
+| EXECUTE | webhook | /ws/simple/executeWebhook |
 
-Before testing ANY WSS endpoint, you MUST:
-1. Read the WSS operation XML file
-2. Extract `operationType` and `objectName` attributes
-3. Apply formula: `lowercase(operationType) + sentenceCase(objectName)` (no separator)
-4. Convert objectName first letter to uppercase for sentence case
-5. Write out the exact endpoint path you will test
-6. Verify the path matches the formula before running curl
+**Common mistakes:** `/ws/simple/GETHello` (uppercase operation), `/ws/simple/gethello` (lowercase objectName), `/ws/simple/get/hello` (separator added)
 
-**Example verification:**
-```
-XML: operationType="GET", objectName="Hello"
-Step 1: lowercase("GET") = "get"
-Step 2: sentenceCase("Hello") = "Hello" (first letter uppercase)
-Step 3: Concatenate = "get" + "Hello" = "getHello"
-Endpoint: /ws/simple/getHello
-```
-
-**WRONG examples to avoid:**
-- `/ws/simple/GETHello` (uppercase operation)
-- `/ws/simple/gethello` (lowercase h - must be uppercase)
-- `/ws/simple/Hello` (missing operation)
-- `/ws/simple/get/hello` (added separator)
+**HTTP method** is determined by `inputType`, not `operationType`: `inputType="none"` → GET, anything else → POST.
 
 **Complete Testing Workflow:**
 ```bash
-# Step 1: Read WSS operation XML to extract endpoint details
-# Look for operationType and objectName in <WebServicesServerListenAction>
-# Apply formula: /ws/simple/{lowercase(operationType)}{sentenceCase(objectName)}
-# Example: operationType="GET" + objectName="Hello" → /ws/simple/getHello
+# Step 1: Read WSS operation XML — extract operationType and objectName
+# Step 2: Compute path: /ws/simple/{lowercase(operationType)}{sentenceCase(objectName)}
 
-# Step 2: Deploy the process to runtime (run from workspace)
+# Step 3: Deploy
 bash scripts/boomi-deploy.sh active-development/processes/YourProcess.xml
 
-# Step 3: Wait for runtime propagation (10-15 seconds)
+# Step 4: Wait for runtime propagation
 sleep 12
 
-# Step 4: Test the endpoint using curl
-# REMEMBER: lowercase the operationType, sentence case the objectName
-
-# For GET requests (no body):
-# If XML has operationType="GET" objectName="Hello"
-curl -k -X GET ${SERVER_BASE_URL}/ws/simple/getHello
-
-# For CREATE requests (with JSON body):
-# If XML has operationType="CREATE" objectName="User"
-curl -k -X POST \
-  -H "Content-Type: application/json" \
-  -d '{"key":"value"}' \
-  ${SERVER_BASE_URL}/ws/simple/createUser
-
-# NOTE: The HTTP method (GET/POST) is determined by inputType in the XML,
-# NOT by the operationType. operationType only affects the URL path.
-
-# The response will be whatever your process returns via the Return Documents step
+# Step 5: Test
+bash scripts/boomi-wss-test.sh --path /ws/simple/createUser --method POST --data '{"key":"value"}'
 ```
 
 
@@ -286,10 +238,10 @@ Every test execution follows this workflow. Log retrieval is not optional — al
 
 **WSS listener processes:**
 - [ ] Deploy the process: `bash scripts/boomi-deploy.sh active-development/processes/<process>.xml`
+- [ ] If the deploy printed a collision WARNING: investigate before testing — query executions to confirm your process ID ran, not a stale one
 - [ ] Wait for runtime propagation (~12 seconds)
-- [ ] Send HTTP request via curl (see WSS Endpoint URL Construction above)
-(if you have issues ensure your path is unique and not colliding)
-- [ ] Query execution: `bash scripts/boomi-execution-query.sh --process-id <guid>`
+- [ ] Test endpoint: `bash scripts/boomi-wss-test.sh --path /ws/simple/<path> --method POST --data '...'`
+- [ ] Query execution **by your process ID**: `bash scripts/boomi-execution-query.sh --process-id <guid>`
 - [ ] Download logs for the latest execution: `bash scripts/boomi-execution-query.sh --execution-id <execution-id> --logs`
 - [ ] Review logs — check Notify step output, errors, and processing flow
 

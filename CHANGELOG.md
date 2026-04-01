@@ -2,6 +2,13 @@
 
 All notable changes are documented here.
 
+## 0.5.21
+
+- Add `boomi-wss-test.sh` — wrapper for testing WSS listener endpoints (handles auth, SSL, content-type internally)
+- Add WSS listener path collision probe to `boomi-deploy.sh` — warns when an endpoint is already occupied before deploying
+- Streamline WSS testing docs in `process_testing_guide.md` — replace raw curl examples with script usage
+- Update template `CLAUDE.md` with structural headings, CLI tools pointer, and curl exit-code-35 guidance
+
 ## 0.5.20
 
 - Add `.env` credential steering via deny rules in template workspace settings

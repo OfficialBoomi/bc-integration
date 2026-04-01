@@ -136,7 +136,8 @@ The skill makes the following CLI tools available to the agent:
 - `boomi-component-pull.sh` - Downloads components from platform
 - `boomi-deploy.sh` - Packages and deploys processes to runtime
 - `boomi-undeploy.sh` - Undeploys processes from runtime
-- `boomi-test-execute.sh` - Executes and tests processes
+- `boomi-test-execute.sh` - Executes and tests processes via platform API
+- `boomi-wss-test.sh` - Tests WSS listener endpoints via the shared web server
 - `boomi-profile-inspect.py` - Extracts field metadata from large profiles (Python stdlib)
 - `event-streams-setup.sh` - Configures Event Streams
 

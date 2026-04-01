@@ -74,6 +74,42 @@ xml_branch=$(detect_xml_branch "$FILE_PATH")
 sync_branch=$(read_sync_branch "$FILE_PATH" 2>/dev/null || true)
 effective_branch="${xml_branch:-${sync_branch:-}}"
 
+# --- WSS listener path collision check ---
+# If this process has a WSS start shape, probe the endpoint to see if something is already listening.
+wss_op_id=$(grep -o 'connectorType="wss"[^>]*operationId="[^"]*"' "$FILE_PATH" 2>/dev/null \
+  | grep -o 'operationId="[^"]*"' | sed 's/operationId="//;s/"//' || true)
+
+if [[ -n "$wss_op_id" && -n "${SERVER_BASE_URL:-}" && -n "${SERVER_USERNAME:-}" && -n "${SERVER_TOKEN:-}" ]]; then
+  # Fetch the operation component from the platform to get operationType + objectName
+  op_url="$(build_api_url "Component/${wss_op_id}" false)"
+  boomi_api -X GET "$op_url" -H "Accept: application/xml"
+  op_type=$(echo "$RESPONSE_BODY" | grep -o 'operationType="[^"]*"' | head -1 | sed 's/operationType="//;s/"//')
+  obj_name=$(echo "$RESPONSE_BODY" | grep -o 'objectName="[^"]*"' | head -1 | sed 's/objectName="//;s/"//')
+
+  if [[ -n "$op_type" && -n "$obj_name" ]]; then
+    # Build path: lowercase operationType + sentence-cased objectName
+    lc_op=$(echo "$op_type" | tr '[:upper:]' '[:lower:]')
+    sc_obj="$(echo "${obj_name:0:1}" | tr '[:lower:]' '[:upper:]')${obj_name:1}"
+    wss_path="/ws/simple/${lc_op}${sc_obj}"
+
+    ssl_flag=""
+    [[ "${SERVER_VERIFY_SSL:-true}" == "false" ]] && ssl_flag="-k"
+
+    probe_code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 \
+      $ssl_flag -X HEAD -u "${SERVER_USERNAME}:${SERVER_TOKEN}" \
+      "${SERVER_BASE_URL}${wss_path}" 2>/dev/null; true)
+    [[ -z "$probe_code" ]] && probe_code="000"
+
+    if [[ "$probe_code" != "404" && "$probe_code" != "000" ]]; then
+      echo ""
+      echo "WARNING: Listener path ${wss_path} returned HTTP ${probe_code} — a listener process is already deployed on this path."
+      echo "This is expected if: re-deploying this same process, or WSS is wrapped in an API Service component."
+      echo "If this is a NEW process: path collision is likely — the existing listener will consume requests instead of yours. Change your objectName to something unique."
+      echo ""
+    fi
+  fi
+fi
+
 # --- Step 1: Package the component ---
 # Uses the two-step pattern: PackagedComponent → DeployedPackage
 # This ensures deterministic branch control (branchName on DeployedPackage is silently ignored).

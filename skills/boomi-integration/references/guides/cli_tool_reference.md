@@ -23,7 +23,8 @@ Specialized bash tools handle different aspects of the development lifecycle. Al
 **Deployment & Testing**:
 - **boomi-deploy.sh**: Deploy processes to runtime environments
 - **boomi-undeploy.sh**: Remove deployments by ID or by component file (`--by-component`)
-- **boomi-test-execute.sh**: Trigger process execution via API and return execution ID
+- **boomi-test-execute.sh**: Trigger process execution via platform API and return execution ID
+- **boomi-wss-test.sh**: Test WSS listener endpoints directly via the shared web server
 - **boomi-execution-query.sh**: Query execution records and download logs for any process type (including WSS listeners, manually executed processes, scheduled processes)
 
 **Branch & Merge** (only for accounts with Branch & Merge enabled):
@@ -61,8 +62,11 @@ bash scripts/boomi-component-pull.sh --component-id <guid>
 # Deploy to runtime (REQUIRED before testing)
 bash scripts/boomi-deploy.sh active-development/processes/my-process.xml --deployment-notes "Optional notes"
 
-# Execute process tests (trigger execution)
+# Execute process tests via platform API
 bash scripts/boomi-test-execute.sh --process-id <guid>
+
+# Test WSS listener endpoint via shared web server
+bash scripts/boomi-wss-test.sh --path /ws/simple/createOrder --method POST --data '{"key":"value"}'
 
 # List environments
 bash scripts/boomi-deploy.sh --list-environments

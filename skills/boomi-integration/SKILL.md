@@ -171,7 +171,8 @@ Default to the local `references/` content — it is curated and verified for th
     ├── boomi-component-push.sh  # Update existing components with local changes
     ├── boomi-component-pull.sh  # Download components with dependency resolution
     ├── boomi-deploy.sh          # Deploy components to runtime environment
-    ├── boomi-test-execute.sh    # Trigger process execution via API and return execution ID
+    ├── boomi-test-execute.sh    # Trigger process execution via platform API
+    ├── boomi-wss-test.sh        # Test WSS listener endpoints via shared web server
     ├── boomi-execution-query.sh # Query execution records and download logs for any process type
     ├── boomi-profile-inspect.py # Extract field metadata from large profiles (Python stdlib only)
     ├── boomi-undeploy.sh        # Remove deployments from runtime environment
@@ -297,9 +298,13 @@ Ten specialized tools handle development lifecycle. All tools are bash scripts (
 - `boomi-undeploy.sh` - Remove deployments from a runtime environment
   - Modes: `<deploymentId>` (direct removal), `--by-component <file_path>` (lookup and remove via component file)
 
-- `boomi-test-execute.sh` - Trigger process execution via API and return execution ID
+- `boomi-test-execute.sh` - Trigger process execution via platform API and return execution ID
   - Required: `--process-id`
   - Optional: `--test-data`, `--no-wait`
+
+- `boomi-wss-test.sh` - Test WSS listener endpoints via the shared web server
+  - Required: `--path` (e.g., `/ws/simple/createOrder`)
+  - Optional: `--method` (default POST), `--data` (inline JSON or file path), `--content-type` (default `application/json`)
 
 - `boomi-execution-query.sh` - Query execution records and download logs for any process type
   - Optional: `--process-id`, `--status`, `--since`, `--limit` (default 3)
