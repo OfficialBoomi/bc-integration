@@ -6,7 +6,7 @@ This project is licensed under the [BSD-2-Clause License](LICENSE). If you fork 
 
 ## Feedback & Issues
 
-Found a bug or have a feature idea? Open an issue with a clear description, steps to reproduce, and any relevant error messages. 
+Found a bug or have a feature idea? Email solutions@boomi.com with a clear description, steps to reproduce, and any relevant error messages.
 
 ## Installation
 
