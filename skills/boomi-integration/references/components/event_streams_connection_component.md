@@ -42,20 +42,26 @@ The CLI tool manages Event Streams infrastructure (topics, subscriptions, tokens
 
 **Infrastructure setup via CLI (safe — no credentials):**
 ```bash
-bash scripts/event-streams-setup.sh create-topic "MyTopic"
-bash scripts/event-streams-setup.sh create-subscription "MyTopic" "MySubscription"
-bash scripts/event-streams-setup.sh query-topic "MyTopic"
+bash <skill-path>/scripts/event-streams-setup.sh create-topic "MyTopic"
+bash <skill-path>/scripts/event-streams-setup.sh create-subscription "MyTopic" "MySubscription"
+bash <skill-path>/scripts/event-streams-setup.sh query-topic "MyTopic"
 ```
 
-**Token provisioning via CLI:** `create-token` provisions a new token. The script omits the token value from the response — only id, name, and permissions are returned. After provisioning, instruct the user to retrieve the token from the Boomi GUI and configure the connection there.
+**Token provisioning via CLI:** `create-token` provisions a new token. The response returns only metadata (id, name, permissions) — not the token value.
 ```bash
-bash scripts/event-streams-setup.sh create-token "MyToken"
+bash <skill-path>/scripts/event-streams-setup.sh create-token "MyToken"
 ```
 
 **Token queries:** `query-tokens` returns token metadata (id, name, permissions, expiration) without token values.
 ```bash
-bash scripts/event-streams-setup.sh query-tokens
+bash <skill-path>/scripts/event-streams-setup.sh query-tokens
 ```
+
+**Provisioning a connection:** `provision-connection` creates a complete ES connection on the platform and pulls back the encrypted version. The token value is never printed or written to the workspace.
+```bash
+bash <skill-path>/scripts/event-streams-setup.sh provision-connection "MyESConnection" "MyToken" "MyFolder"
+```
+The command builds the connection XML internally, pushes it to the platform (which encrypts the token), then pulls the encrypted component into `active-development/connections/`. Standard workflow: `query-tokens` or `create-token` → `provision-connection` → use the pulled connection in your process.
 
 **Token Management:**
 - Token permissions (`allowConsume`/`allowProduce`) control which operations can use the token

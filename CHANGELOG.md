@@ -2,6 +2,59 @@
 
 All notable changes are documented here.
 
+## 0.5.32
+
+- Strengthen WSS path collision warning in deploy script and testing guide — clearer STOP directive for new-process deployments to prevent AI from ignoring the warning
+
+## 0.5.31
+
+- Add "Boomi Companion" user-agent header to all outbound HTTP requests
+
+## 0.5.30
+
+- Expand Set Properties step reference with complete valueType coverage (15 source value types) and all 5 settable property types (DDP, DPP, MIME, Connector Document Property, Process Property Component).
+
+## 0.5.29
+
+- Fix SIGPIPE (exit 141) on large component pulls — replace `grep|head` pipes with single-process `awk` extraction across `boomi-component-pull.sh`, `boomi-deploy.sh`, and `event-streams-setup.sh`
+
+## 0.5.28
+
+- Update skill README feedback channels to solutions@boomi.com (not accepting public issues yet)
+- Remove premature contribution infrastructure promise and internal CI pipeline detail from public-facing doc
+
+## 0.5.27
+
+- Add component version management: `boomi-version-history.sh` for listing version history, `boomi-component-diff.sh` for structured version comparison, `--version N` on pull for retrieving historical versions, `--force` on push for rollback workflows
+- Add `version_management_guide.md` — versioning model, history, retrieval, comparison, deletion behavior, branch interactions
+- Add HTTP 403 (identical content) to problem solving guide
+
+## 0.5.26
+
+- Introduce `<skill-path>` convention for script paths — all documentation now uses `<skill-path>/scripts/` instead of bare `scripts/` to ensure correct path resolution when the skill is loaded as a plugin
+
+## 0.5.25
+
+- Update all installation references from `boomi-marketplace` to `boomi-companion`
+
+## 0.5.24
+
+- Fix `create-token` — correct GraphQL type and add required `expirationTime`
+- Add `provision-connection`, `list-topics`, and `rest-produce` commands to Event Streams CLI
+- Add optional `[token-name]` argument to `rest-produce` for explicit token selection
+- Add `event_streams_rest_api.md` — REST produce reference (auth, payloads, limits)
+- Enrich `query-topic` with REST produce URLs and subscription detail
+- Event Streams doc corrections: remove non-functional `partitions` field, clarify `actionType` values, add Consume-as-start to process options table
+
+## 0.5.23
+
+- Add `stop_step.md` reference — documents Stop step `continue` attribute (`true`/`false`) with validated runtime behavior
+- Correct error reference Issue #15 — bare `<stop/>` causes runtime `NullPointerException` in addition to GUI stack overflow (previously documented as GUI-only)
+
+## 0.5.22
+
+- Add error reference Issue #29 (Component Locking) — documents that GUI-held locks block all API writes and cannot be queried or released via API
+
 ## 0.5.21
 
 - Add `boomi-wss-test.sh` — wrapper for testing WSS listener endpoints (handles auth, SSL, content-type internally)

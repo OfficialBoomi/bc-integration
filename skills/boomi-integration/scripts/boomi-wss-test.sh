@@ -38,7 +38,7 @@ ssl_flag=""
 
 # --- Build and execute curl ---
 curl_args=($ssl_flag -s -w "\n--- HTTP %{http_code} (%{time_total}s) ---" \
-  --max-time 30 -X "$METHOD" -u "${SERVER_USERNAME}:${SERVER_TOKEN}")
+  --max-time 30 -A "$BOOMI_USER_AGENT" -X "$METHOD" -u "${SERVER_USERNAME}:${SERVER_TOKEN}")
 
 if [[ -n "$DATA" ]]; then
   if [[ -f "$DATA" ]]; then

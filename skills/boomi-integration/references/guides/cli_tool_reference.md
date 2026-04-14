@@ -19,6 +19,8 @@ Specialized bash tools handle different aspects of the development lifecycle. Al
 - **boomi-component-create.sh**: Create new components on platform (generates component IDs)
 - **boomi-component-push.sh**: Update existing components on platform
 - **boomi-component-pull.sh**: Download components from platform to local
+- **boomi-component-diff.sh**: Compare two versions of a component (structured JSON diff)
+- **boomi-version-history.sh**: List component version history
 
 **Deployment & Testing**:
 - **boomi-deploy.sh**: Deploy processes to runtime environments
@@ -44,65 +46,65 @@ Specialized bash tools handle different aspects of the development lifecycle. Al
 **New Components (CREATE workflow)**:
 ```bash
 # STEP 1: Create dedicated project folder (run from workspace)
-bash scripts/boomi-folder-create.sh "WeatherAPI_Project"
+bash <skill-path>/scripts/boomi-folder-create.sh "WeatherAPI_Project"
 # Returns: folder_abc123def
 
 # STEP 2: Create components (XML must have folderId="folder_abc123def" attribute)
-bash scripts/boomi-component-create.sh active-development/profiles/new-profile.xml
+bash <skill-path>/scripts/boomi-component-create.sh active-development/profiles/new-profile.xml
 ```
 
 **Existing Components (UPDATE workflow)**:
 ```bash
 # Push (design-time update)
-bash scripts/boomi-component-push.sh active-development/processes/my-process.xml
+bash <skill-path>/scripts/boomi-component-push.sh active-development/processes/my-process.xml
 
 # Pull from platform
-bash scripts/boomi-component-pull.sh --component-id <guid>
+bash <skill-path>/scripts/boomi-component-pull.sh --component-id <guid>
 
 # Deploy to runtime (REQUIRED before testing)
-bash scripts/boomi-deploy.sh active-development/processes/my-process.xml --deployment-notes "Optional notes"
+bash <skill-path>/scripts/boomi-deploy.sh active-development/processes/my-process.xml --deployment-notes "Optional notes"
 
 # Execute process tests via platform API
-bash scripts/boomi-test-execute.sh --process-id <guid>
+bash <skill-path>/scripts/boomi-test-execute.sh --process-id <guid>
 
 # Test WSS listener endpoint via shared web server
-bash scripts/boomi-wss-test.sh --path /ws/simple/createOrder --method POST --data '{"key":"value"}'
+bash <skill-path>/scripts/boomi-wss-test.sh --path /ws/simple/createOrder --method POST --data '{"key":"value"}'
 
 # List environments
-bash scripts/boomi-deploy.sh --list-environments
+bash <skill-path>/scripts/boomi-deploy.sh --list-environments
 
 # Undeploy by component file
-bash scripts/boomi-undeploy.sh --by-component active-development/processes/my-process.xml
+bash <skill-path>/scripts/boomi-undeploy.sh --by-component active-development/processes/my-process.xml
 
 # Undeploy by deployment ID
-bash scripts/boomi-undeploy.sh <deploymentId>
+bash <skill-path>/scripts/boomi-undeploy.sh <deploymentId>
 
 # Query recent executions (last 3 by default, all filters optional)
-bash scripts/boomi-execution-query.sh [--process-id <guid>] [--status STATUS] [--since ISO8601] [--limit N]
+bash <skill-path>/scripts/boomi-execution-query.sh [--process-id <guid>] [--status STATUS] [--since ISO8601] [--limit N]
 
 # Download logs for a specific execution
-bash scripts/boomi-execution-query.sh --execution-id <execution-id> --logs
+bash <skill-path>/scripts/boomi-execution-query.sh --execution-id <execution-id> --logs
 ```
 
 **Branch Workflows** (only when user has explicitly opted into Branch & Merge):
 ```bash
 # Branch lifecycle
-bash scripts/boomi-branch.sh list
-bash scripts/boomi-branch.sh create --name feature-x --parent main
-bash scripts/boomi-branch.sh delete --branch feature-x
+bash <skill-path>/scripts/boomi-branch.sh list
+bash <skill-path>/scripts/boomi-branch.sh create --name feature-x --parent main
+bash <skill-path>/scripts/boomi-branch.sh delete --branch feature-x
 
 # Component operations on a branch
-bash scripts/boomi-component-pull.sh --component-id <guid> --branch feature-x
-bash scripts/boomi-component-create.sh active-development/processes/new-process.xml --branch feature-x
-bash scripts/boomi-component-push.sh active-development/processes/my-process.xml  # branch is sticky from XML
+bash <skill-path>/scripts/boomi-component-pull.sh --component-id <guid> --branch feature-x
+bash <skill-path>/scripts/boomi-component-create.sh active-development/processes/new-process.xml --branch feature-x
+bash <skill-path>/scripts/boomi-component-push.sh active-development/processes/my-process.xml  # branch is sticky from XML
 
 # Merge operations
-bash scripts/boomi-branch.sh merge --source feature-x --dest <target-branch>
-bash scripts/boomi-branch.sh merge-status --id <mergeRequestId>   # poll until stage=REVIEWING
-bash scripts/boomi-branch.sh merge-execute --id <mergeRequestId>  # execute the merge
+bash <skill-path>/scripts/boomi-branch.sh merge --source feature-x --dest <target-branch>
+bash <skill-path>/scripts/boomi-branch.sh merge-status --id <mergeRequestId>   # poll until stage=REVIEWING
+bash <skill-path>/scripts/boomi-branch.sh merge-execute --id <mergeRequestId>  # execute the merge
 
 # Deploy warns automatically if component is from a non-main branch
-bash scripts/boomi-deploy.sh active-development/processes/my-process.xml
+bash <skill-path>/scripts/boomi-deploy.sh active-development/processes/my-process.xml
 ```
 
 **Branch resolution priority for component tools:** `--branch` flag > `branchId` already in XML > `BOOMI_DEFAULT_BRANCH_ID` env var > main.
@@ -111,10 +113,24 @@ bash scripts/boomi-deploy.sh active-development/processes/my-process.xml
 
 See `references/guides/branch_merge_guide.md` for full Branch & Merge API reference.
 
+**Version Management Workflows**:
+```bash
+# List all versions of a component
+bash <skill-path>/scripts/boomi-version-history.sh --component-id <guid>
+
+# Pull a specific historical version (saves as MyProcess_v2.xml)
+bash <skill-path>/scripts/boomi-component-pull.sh --component-id <guid> --version 2
+
+# Compare two versions
+bash <skill-path>/scripts/boomi-component-diff.sh --component-id <guid> --source 1 --target 3
+```
+
+See `references/guides/version_management_guide.md` for full version management reference.
+
 **Large Profile Analysis**:
 ```bash
 # Generate searchable field inventory (always outputs to active-development/profiles/distilled_<name>.json)
-python3 scripts/boomi-profile-inspect.py active-development/profiles/large-profile.xml
+python3 <skill-path>/scripts/boomi-profile-inspect.py active-development/profiles/large-profile.xml
 ```
 
 **When to use**: Run this tool immediately when attempting to Read a profile file and encountering a "file too large" error. The tool extracts element IDs with full hierarchical paths, enabling disambiguation of duplicate field names common in WSDL/SOAP-derived profiles (e.g., 60+ "First_Name" fields in different contexts).

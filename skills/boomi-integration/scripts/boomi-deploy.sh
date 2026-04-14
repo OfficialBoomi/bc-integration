@@ -83,8 +83,8 @@ if [[ -n "$wss_op_id" && -n "${SERVER_BASE_URL:-}" && -n "${SERVER_USERNAME:-}" 
   # Fetch the operation component from the platform to get operationType + objectName
   op_url="$(build_api_url "Component/${wss_op_id}" false)"
   boomi_api -X GET "$op_url" -H "Accept: application/xml"
-  op_type=$(echo "$RESPONSE_BODY" | grep -o 'operationType="[^"]*"' | head -1 | sed 's/operationType="//;s/"//')
-  obj_name=$(echo "$RESPONSE_BODY" | grep -o 'objectName="[^"]*"' | head -1 | sed 's/objectName="//;s/"//')
+  op_type=$(echo "$RESPONSE_BODY" | awk 'match($0, /operationType="[^"]*"/) { print substr($0, RSTART+15, RLENGTH-16); exit }')
+  obj_name=$(echo "$RESPONSE_BODY" | awk 'match($0, /objectName="[^"]*"/) { print substr($0, RSTART+12, RLENGTH-13); exit }')
 
   if [[ -n "$op_type" && -n "$obj_name" ]]; then
     # Build path: lowercase operationType + sentence-cased objectName
@@ -96,15 +96,14 @@ if [[ -n "$wss_op_id" && -n "${SERVER_BASE_URL:-}" && -n "${SERVER_USERNAME:-}" 
     [[ "${SERVER_VERIFY_SSL:-true}" == "false" ]] && ssl_flag="-k"
 
     probe_code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 \
-      $ssl_flag -X HEAD -u "${SERVER_USERNAME}:${SERVER_TOKEN}" \
+      $ssl_flag -A "$BOOMI_USER_AGENT" -X HEAD -u "${SERVER_USERNAME}:${SERVER_TOKEN}" \
       "${SERVER_BASE_URL}${wss_path}" 2>/dev/null; true)
     [[ -z "$probe_code" ]] && probe_code="000"
 
     if [[ "$probe_code" != "404" && "$probe_code" != "000" ]]; then
       echo ""
-      echo "WARNING: Listener path ${wss_path} returned HTTP ${probe_code} — a listener process is already deployed on this path."
-      echo "This is expected if: re-deploying this same process, or WSS is wrapped in an API Service component."
-      echo "If this is a NEW process: path collision is likely — the existing listener will consume requests instead of yours. Change your objectName to something unique."
+      echo "COLLISION WARNING: ${wss_path} returned HTTP ${probe_code} — a listener is ALREADY on this path. If you have built and are deploying a NEW process, STOP: you MUST change the objectName in your WSS Operation to something unique before deploying (see boomi_error_reference.md Issue #19)."
+      echo "Only proceed past this warning if you are certain that you are deploying a listener process that is already be deployed and active on the platform"
       echo ""
     fi
   fi

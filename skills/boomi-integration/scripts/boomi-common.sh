@@ -45,6 +45,10 @@ require_tools() {
   fi
 }
 
+# --- Constants ---
+
+BOOMI_USER_AGENT="Boomi Companion"
+
 # --- API helpers ---
 
 build_api_url() {
@@ -77,6 +81,7 @@ boomi_curl() {
 
   curl -s $ssl_flag \
     --max-time "${BOOMI_TIMEOUT:-60}" \
+    -A "$BOOMI_USER_AGENT" \
     -u "BOOMI_TOKEN.${BOOMI_USERNAME}:${BOOMI_API_TOKEN}" \
     "$@"
 }

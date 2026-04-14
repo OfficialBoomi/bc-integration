@@ -30,7 +30,7 @@ A comprehensive guide to Boomi error patterns, silent failures, and issues that 
 | Test data in production | #12 (Test Payloads) |
 | SSL certificate verification errors | #13 (SSL Verification) |
 | Blank canvas in GUI (JavaScript error) | #14 (Branch numBranches) |
-| Stack overflow opening process in GUI | #15 (Stop continue Attribute) |
+| NullPointerException at runtime / stack overflow in GUI | #15 (Stop continue Attribute) |
 | Empty action picklist in WSS operation | #16 (WSS actionType) |
 | Script engine null error in Data Process | #17 (Groovy Attributes) |
 | "No document" error with perExecution | #18 (Notify perExecution) |
@@ -38,13 +38,14 @@ A comprehensive guide to Boomi error patterns, silent failures, and issues that 
 | MCP tool schema changes not applied | #20 (MCP Profile/Schema Sync) |
 | MCP 503 after valid token auth | #21 (MCP 503 After Valid Auth) |
 | EDI map producing split/duplicate documents | #22 (EDI TagList elementKey Target) |
-| White screen opening SF operation in GUI | #28 (SF Operation Missing Sorts Element) |
 | Extension values lost after push/deploy | #23 (Empty processOverrides) |
 | DPP value always empty despite being set | #24 (DPP valueType="track") |
 | MANDATORY_ELEMENT_MISSING on map output with identity fields | #25 (Identity Field Mandatory) |
 | Record silently missing from multi-record flat file output | #26 (Identity Value Trimming) |
 | "No data produced from map" on data positioned profile | #26 (Identity Value Trimming) |
 | HTTP 500 on concurrent listener requests / listener queuing | #27 (Listener Process Options) |
+| White screen opening SF operation in GUI | #28 (SF Operation Missing Sorts Element) |
+| Push rejected — "locked by another user" | #29 (Component Locking) |
 
 ---
 
@@ -66,7 +67,7 @@ A comprehensive guide to Boomi error patterns, silent failures, and issues that 
 | 12 | Subprocess Test Payloads in Production | Medium | Silent - wrong data source |
 | 13 | SSL Certificate Verification in Testing | Medium | Runtime connection failures |
 | 14 | Branch Step Missing numBranches Attribute | Medium | GUI rendering error - blank canvas |
-| 15 | Stop Step Missing continue Attribute | Medium | GUI rendering error - stack overflow |
+| 15 | Stop Step Missing continue Attribute | Medium | Runtime NullPointerException + GUI stack overflow |
 | 16 | WSS Start Step Invalid actionType | Medium | GUI rendering error - empty action picklist |
 | 17 | Data Process Script Engine Attributes | Medium | Runtime error - cryptic null error |
 | 18 | Notify perExecution="true" Loses Document Context | Medium | Runtime error - "no document" |
@@ -249,8 +250,8 @@ Deploy parent → Runtime captures subprocess v1 → Update subprocess → v2 de
 
 ```bash
 # 1. Update subprocess
-bash scripts/boomi-component-push.sh subprocess.xml
-bash scripts/boomi-deploy.sh subprocess.xml
+bash <skill-path>/scripts/boomi-component-push.sh subprocess.xml
+bash <skill-path>/scripts/boomi-deploy.sh subprocess.xml
 
 # 2. Test parent process
 curl -X POST "${SERVER_BASE_URL}/ws/simple/endpoint"
@@ -261,11 +262,11 @@ curl -X POST "${SERVER_BASE_URL}/ws/simple/endpoint"
 
 ```bash
 # 1. Update subprocess
-bash scripts/boomi-component-push.sh subprocess.xml
+bash <skill-path>/scripts/boomi-component-push.sh subprocess.xml
 # Subprocess does not need to be deployed independently
 
 # 2. CRITICAL: Redeploy parent to pick up subprocess changes
-bash scripts/boomi-deploy.sh parent-wrapper.xml
+bash <skill-path>/scripts/boomi-deploy.sh parent-wrapper.xml
 
 # 3. Wait for propagation (10-15 seconds)
 sleep 15
@@ -863,7 +864,7 @@ Two separate settings control SSL verification in different contexts:
 
 **BOOMI_VERIFY_SSL:**
 - Controls: Platform API calls (component pull/push/create, deployments)
-- Used by: All Python CLI tools in `scripts/` directory
+- Used by: All Python CLI tools in `<skill-path>/scripts/` directory
 - Set to `false` when: Platform API URL uses self-signed certificate
 
 **SERVER_VERIFY_SSL:**
@@ -961,21 +962,23 @@ See references/steps/branch_step.md for complete branch step XML reference and c
 ## Issue #15: Stop Step Missing continue Attribute
 
 **Frequency:** Medium
-**Detection:** GUI rendering error - process cannot be opened with stack overflow
+**Detection:** Runtime failure and GUI rendering error
 
 ### The Problem
 
-Stop steps without the `continue="true"` attribute deploy successfully and execute correctly at runtime, but cause the Boomi GUI to fail with stack overflow error when attempting to open the process.
+Stop steps without the `continue` attribute (bare `<stop/>`) are silently accepted by the platform API and deploy without error, but fail at both runtime and in the GUI. Both `continue="true"` and `continue="false"` are valid -- only the missing attribute triggers the failures.
 
-**Symptom:** `Cannot read properties of null (reading 'a')` and `Maximum call stack size exceeded` JavaScript errors in AtomSphere GUI.
+**Symptoms:**
+- **Runtime:** `NullPointerException` at `StopShape.init(StopShape.java:37)` — process never starts
+- **GUI:** `Cannot read properties of null (reading 'a')` and `Maximum call stack size exceeded` JavaScript errors — process cannot be opened on canvas
 
 ### Why It Happens
 
-The Boomi platform API accepts `<stop/>` without the `continue` attribute and validation passes. The process deploys and executes successfully at runtime. However, the GUI canvas renderer expects the `continue` attribute - without it, the renderer encounters a null reference that triggers infinite recursion, causing stack overflow.
+The Boomi platform API performs no validation on the `continue` attribute during push or deploy. Both operations succeed silently. The failure surfaces only when the runtime engine or GUI renderer attempts to initialize the stop shape and encounters a null where the `continue` value is expected.
 
-**Critical Detail:** Process deploys and runs correctly - only GUI opening fails.
+**Critical Detail:** The API and deployment pipeline give no indication anything is wrong. The failure is deferred to execution time (runtime) or canvas open (GUI).
 
-### Wrong Pattern - GUI Stack Overflow
+### Wrong Pattern — Silent Deploy, Runtime + GUI Failure
 
 ```xml
 <!-- Stop step without continue attribute -->
@@ -985,10 +988,10 @@ The Boomi platform API accepts `<stop/>` without the `continue` attribute and va
   </configuration>
   <dragpoints/>
 </shape>
-<!-- Result: Deploys successfully, executes correctly, but GUI cannot open process -->
+<!-- Result: Push and deploy succeed silently. Runtime: NullPointerException. GUI: stack overflow. -->
 ```
 
-### Correct Pattern - GUI Opens Successfully
+### Correct Pattern
 
 ```xml
 <!-- Stop step with continue attribute -->
@@ -1003,13 +1006,13 @@ The Boomi platform API accepts `<stop/>` without the `continue` attribute and va
 
 ### Critical Rule
 
-**Always include `continue="true"` attribute in all stop step configurations.** This is required for GUI compatibility, even though runtime execution succeeds without it.
+**Always include the `continue` attribute in all stop step configurations.** Either `continue="true"` or `continue="false"` — choose based on whether other paths should keep processing. The attribute is required for both runtime execution and GUI compatibility.
 
 ### Pre-Push Checklist
 
 Before pushing any process with stop steps:
 1. [ ] Locate all `<stop/>` elements in process XML
-2. [ ] Verify each has `continue="true"` attribute
+2. [ ] Verify each has the `continue` attribute (either `"true"` or `"false"`)
 3. [ ] Test GUI opening after deployment to confirm process is accessible
 
 ---
@@ -1327,9 +1330,9 @@ After any schema change:
 3. Redeploy ALL processes using this connection
 
 ```bash
-bash scripts/boomi-component-push.sh mcp-profile.xml
-bash scripts/boomi-component-push.sh mcp-operation.xml
-bash scripts/boomi-deploy.sh mcp-process.xml
+bash <skill-path>/scripts/boomi-component-push.sh mcp-profile.xml
+bash <skill-path>/scripts/boomi-component-push.sh mcp-operation.xml
+bash <skill-path>/scripts/boomi-deploy.sh mcp-process.xml
 ```
 
 ---
@@ -1657,5 +1660,28 @@ The GWT-based operation editor assumes `<Sorts>` exists as a child of `<Salesfor
 ### The Rule
 
 Always include `<Sorts/>` inside `<SalesforceObject>` on query operations, after `</Filter>` and before child `<SalesforceObject>` elements. Even when empty, its presence is required for GUI rendering.
+
+---
+
+## Issue #29: Component Locking Blocks All API Updates
+
+**Frequency:** Medium (accounts with Component Locking enabled)
+**Detection:** Push fails with HTTP 400 — `"Component {id} is currently locked by another user. To complete this action, the component must be unlocked."`
+
+### The Problem
+
+When Component Locking is enabled in a Boomi account and a user holds a lock on a component (via the GUI), all API updates to that component are rejected with HTTP 400 — including API calls authenticated as the lock holder.
+
+### Key Facts
+
+- **Reads are unaffected** — GET/pull succeeds regardless of lock state.
+- **Writes are blocked for all API users** — locks are GUI-session-scoped, not user-scoped. The API is always treated as a separate session.
+- **No lock query API** — there is no endpoint to check lock status. The only way to discover a lock is to attempt a push and observe the 400.
+- **No API lock/unlock** — locks can only be acquired and released in the GUI.
+- **Error message is identical** regardless of whether the API credentials match the lock holder — it always says "locked by another user."
+
+### The Rule
+
+When a push fails with this error, inform the user that the component is locked and must be unlocked in the Boomi GUI. Do not retry — the lock state cannot be changed via API.
 
 ---

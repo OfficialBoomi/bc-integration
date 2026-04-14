@@ -6,7 +6,7 @@ This project is licensed under the [BSD-2-Clause License](LICENSE). If you fork 
 
 ## Feedback & Issues
 
-Found a bug or have a feature idea? Open an issue with a clear description, steps to reproduce, and any relevant error messages.
+Found a bug or have a feature idea? Email solutions@boomi.com with a clear description, steps to reproduce, and any relevant error messages.
 
 ## What is this?
 
@@ -29,8 +29,8 @@ This is a distributable skill that provides AI coding agents with knowledge and 
 
 Install through the Claude Code plugin system — the skill is included automatically:
 
-1. Add the Boomi marketplace: `/plugin marketplace add OfficialBoomi/boomi-marketplace`
-2. Install the plugin: `/plugin install bc-integration@boomi-marketplace`
+1. Add the Boomi marketplace: `/plugin marketplace add OfficialBoomi/boomi-companion`
+2. Install the plugin: `/plugin install bc-integration@boomi-companion`
 
 Alternatively, navigate the `/plugin` menu interactively within Claude Code to add the marketplace and install.
 
@@ -175,7 +175,4 @@ If you encounter issues:
 
 1. This course provides an excellent intro to Claude Code: https://anthropic.skilljar.com/claude-code-in-action
 2. We would love your feedback and input via solutions@boomi.com
-3. We will be building out a more formal contribution infrastructure in the months to come
-4. Your AI agent can often help troubleshoot and explain issues
-
-This skill is now generated using a pipeline any time commits are merged to the MAIN branch of the plugin.
+3. Your AI agent can often help troubleshoot and explain issues

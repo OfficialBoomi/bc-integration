@@ -32,7 +32,7 @@
    - If `jq` is missing: `brew install jq` (macOS) or `apt install jq` (Linux)
 
 5. **Test connection**:
-   - Run: `bash scripts/boomi-component-push.sh --test-connection`
+   - Run: `bash <skill-path>/scripts/boomi-component-push.sh --test-connection`
    - If success: "Great! Your connection to the Boomi platform is working."
    - If failure: Explain the error and help troubleshoot (usually credentials)
 

@@ -35,7 +35,7 @@ If URL provided, extract the GUID:
 
 **Step 2: Pull root component(s)**
 
-Run: `bash scripts/boomi-component-pull.sh --component-id <guid>`
+Run: `bash <skill-path>/scripts/boomi-component-pull.sh --component-id <guid>`
 
 Verify the component was pulled successfully to `active-development/`.
 
@@ -58,7 +58,7 @@ Create a list of missing component IDs.
 
 For each missing dependency:
 ```bash
-bash scripts/boomi-component-pull.sh --component-id <dependency-guid>
+bash <skill-path>/scripts/boomi-component-pull.sh --component-id <dependency-guid>
 ```
 
 **Step 6: Pull transitive dependencies (depth 2-7)**

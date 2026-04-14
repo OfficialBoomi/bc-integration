@@ -11,11 +11,13 @@ require_tools curl jq
 FILE_PATH=""
 TEST_CONN=false
 BRANCH=""
+FORCE=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --test-connection) TEST_CONN=true; shift ;;
     --branch)          BRANCH="$2"; shift 2 ;;
+    --force)           FORCE=true; shift ;;
     -*)                echo "Unknown option: $1" >&2; exit 1 ;;
     *)                 FILE_PATH="$1"; shift ;;
   esac
@@ -27,7 +29,7 @@ if $TEST_CONN; then
 fi
 
 if [[ -z "$FILE_PATH" ]]; then
-  echo "Usage: bash scripts/boomi-component-push.sh <file_path> [--branch NAME_OR_ID]" >&2
+  echo "Usage: bash scripts/boomi-component-push.sh <file_path> [--branch NAME_OR_ID] [--force]" >&2
   exit 1
 fi
 
@@ -60,8 +62,12 @@ for sf in "${sync_dir}/${state_name}.json" "${sync_dir}/${COMPONENT_NAME}.json";
   if [[ -f "$sf" ]]; then
     last_hash=$(jq -r '.content_hash // empty' "$sf" 2>/dev/null)
     if [[ -n "$last_hash" && "$current_hash" == "$last_hash" ]]; then
-      echo "Component '${COMPONENT_NAME}' is up to date (no changes detected)"
-      exit 0
+      if $FORCE; then
+        echo "Force push — skipping content hash check"
+      else
+        echo "Component '${COMPONENT_NAME}' is up to date (no changes detected)"
+        exit 0
+      fi
     fi
     break
   fi

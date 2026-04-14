@@ -158,17 +158,17 @@ See: `components/flow_service_component.md`
 ```bash
 # 1. Push all Integration components (order matters for dependencies)
 # Each XML must have folderId attribute set to the target folder GUID
-bash scripts/boomi-component-create.sh profiles/request.xml
-bash scripts/boomi-component-create.sh profiles/response.xml
-bash scripts/boomi-component-create.sh operations/fss_op.xml
-bash scripts/boomi-component-create.sh processes/fss_process.xml
-bash scripts/boomi-component-create.sh flow-services/my_service.xml
+bash <skill-path>/scripts/boomi-component-create.sh profiles/request.xml
+bash <skill-path>/scripts/boomi-component-create.sh profiles/response.xml
+bash <skill-path>/scripts/boomi-component-create.sh operations/fss_op.xml
+bash <skill-path>/scripts/boomi-component-create.sh processes/fss_process.xml
+bash <skill-path>/scripts/boomi-component-create.sh flow-services/my_service.xml
 
 # 2. Deploy process (makes it executable)
-bash scripts/boomi-deploy.sh processes/fss_process.xml
+bash <skill-path>/scripts/boomi-deploy.sh processes/fss_process.xml
 
 # 3. Deploy Flow Service (makes it discoverable by Flow)
-bash scripts/boomi-deploy.sh flow-services/my_service.xml
+bash <skill-path>/scripts/boomi-deploy.sh flow-services/my_service.xml
 
 # 4. Verify deployment (Flow should now see the service)
 ```

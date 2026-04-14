@@ -21,7 +21,7 @@ All branch operations use `boomi-branch.sh`.
 
 **Create** a branch from a parent (typically main):
 ```
-bash scripts/boomi-branch.sh create --name my-feature --parent main
+bash <skill-path>/scripts/boomi-branch.sh create --name my-feature --parent main
 ```
 
 A newly created branch briefly shows `ready=false` / `stage=CREATING` before transitioning to `ready=true` / `stage=NORMAL` within seconds. Component operations succeed even during the CREATING state.
@@ -30,12 +30,12 @@ A newly created branch briefly shows `ready=false` / `stage=CREATING` before tra
 
 **List** all branches:
 ```
-bash scripts/boomi-branch.sh list
+bash <skill-path>/scripts/boomi-branch.sh list
 ```
 
 **Delete** a branch:
 ```
-bash scripts/boomi-branch.sh delete --branch my-feature
+bash <skill-path>/scripts/boomi-branch.sh delete --branch my-feature
 ```
 
 All commands accept branch names or base64 branch IDs.
@@ -45,9 +45,9 @@ All commands accept branch names or base64 branch IDs.
 All component tools accept a `--branch` flag (name or ID). Without it, operations target main.
 
 ```
-bash scripts/boomi-component-pull.sh --component-id {id} --branch my-feature
-bash scripts/boomi-component-push.sh path/to/component.xml --branch my-feature
-bash scripts/boomi-component-create.sh path/to/component.xml --branch my-feature
+bash <skill-path>/scripts/boomi-component-pull.sh --component-id {id} --branch my-feature
+bash <skill-path>/scripts/boomi-component-push.sh path/to/component.xml --branch my-feature
+bash <skill-path>/scripts/boomi-component-create.sh path/to/component.xml --branch my-feature
 ```
 
 Operations on a branch do not affect the main branch version.
@@ -79,7 +79,7 @@ A branch's component namespace is extensible: new components can be added via cr
 The deploy tool uses a two-step pattern internally: it creates a PackagedComponent first (with `branchName` from sync state if present), then deploys by `packageId`. This ensures the correct branch version is deployed.
 
 ```
-bash scripts/boomi-deploy.sh path/to/component.xml
+bash <skill-path>/scripts/boomi-deploy.sh path/to/component.xml
 ```
 
 To deploy main specifically (even if a branch has a newer version), ensure the component was pulled from main (no branch in sync state).
@@ -92,29 +92,29 @@ All merge operations use `boomi-branch.sh`.
 
 **Create** a merge request:
 ```
-bash scripts/boomi-branch.sh merge --source my-feature --dest main
+bash <skill-path>/scripts/boomi-branch.sh merge --source my-feature --dest main
 ```
 
 Options: `--strategy OVERRIDE|CONFLICT_RESOLVE` (default: OVERRIDE), `--priority SOURCE|DESTINATION` (default: SOURCE).
 
 **Check status:**
 ```
-bash scripts/boomi-branch.sh merge-status --id {mergeRequestId}
+bash <skill-path>/scripts/boomi-branch.sh merge-status --id {mergeRequestId}
 ```
 
 **Execute:**
 ```
-bash scripts/boomi-branch.sh merge-execute --id {mergeRequestId}
+bash <skill-path>/scripts/boomi-branch.sh merge-execute --id {mergeRequestId}
 ```
 
 **Revert** a completed merge:
 ```
-bash scripts/boomi-branch.sh merge-revert --id {mergeRequestId}
+bash <skill-path>/scripts/boomi-branch.sh merge-revert --id {mergeRequestId}
 ```
 
 **Delete** a pending merge request:
 ```
-bash scripts/boomi-branch.sh merge-delete --id {mergeRequestId}
+bash <skill-path>/scripts/boomi-branch.sh merge-delete --id {mergeRequestId}
 ```
 
 ### Stage State Machine

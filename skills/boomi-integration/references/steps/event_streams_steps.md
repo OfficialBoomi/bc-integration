@@ -145,5 +145,6 @@ Used to pull messages from an Event Streams subscription on demand. Can be used 
 - Listener must be configured as Start step
 - Consumer can be either Start or mid-process step
 - Producer can be placed anywhere in process flow (except Start)
-- Topic names are statically configured (no dynamic override observed)
+- Topic name can be set dynamically on the Produce step via `dynamicProperties` (key `topic`)
+- Use the named `actionType` values above (`Listen`, `Consume`, `Produce`) — not the operation's `operationType` value
 - All use `<parameters/>` and `<dynamicProperties/>` elements (can be empty)

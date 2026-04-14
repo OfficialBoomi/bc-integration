@@ -44,10 +44,10 @@
 ### **Regular Processes (Non-Listener)**
 ```bash
 # Standard: Trigger process execution
-bash scripts/boomi-test-execute.sh --process-id <guid>
+bash <skill-path>/scripts/boomi-test-execute.sh --process-id <guid>
 
 # Advanced: Send Process Properties (rare)
-bash scripts/boomi-test-execute.sh --process-id <guid> --test-data file.json
+bash <skill-path>/scripts/boomi-test-execute.sh --process-id <guid> --test-data file.json
 ```
 
 **ExecutionRequest Limitations:**
@@ -179,13 +179,13 @@ Test WSS listeners using `boomi-wss-test.sh`, which handles authentication and S
 
 ```bash
 # GET endpoint (inputType="none")
-bash scripts/boomi-wss-test.sh --path /ws/simple/getHello --method GET
+bash <skill-path>/scripts/boomi-wss-test.sh --path /ws/simple/getHello --method GET
 
 # POST endpoint with JSON payload
-bash scripts/boomi-wss-test.sh --path /ws/simple/createUser --method POST --data '{"key":"value"}'
+bash <skill-path>/scripts/boomi-wss-test.sh --path /ws/simple/createUser --method POST --data '{"key":"value"}'
 
 # POST with payload from file
-bash scripts/boomi-wss-test.sh --path /ws/simple/createOrder --method POST --data payload.json
+bash <skill-path>/scripts/boomi-wss-test.sh --path /ws/simple/createOrder --method POST --data payload.json
 ```
 
 Do not use raw curl for WSS endpoint testing — it will be blocked by project permission settings. 
@@ -213,13 +213,13 @@ Example path formats:
 # Step 2: Compute path: /ws/simple/{lowercase(operationType)}{sentenceCase(objectName)}
 
 # Step 3: Deploy
-bash scripts/boomi-deploy.sh active-development/processes/YourProcess.xml
+bash <skill-path>/scripts/boomi-deploy.sh active-development/processes/YourProcess.xml
 
 # Step 4: Wait for runtime propagation
 sleep 12
 
 # Step 5: Test
-bash scripts/boomi-wss-test.sh --path /ws/simple/createUser --method POST --data '{"key":"value"}'
+bash <skill-path>/scripts/boomi-wss-test.sh --path /ws/simple/createUser --method POST --data '{"key":"value"}'
 ```
 
 
@@ -230,31 +230,31 @@ bash scripts/boomi-wss-test.sh --path /ws/simple/createUser --method POST --data
 Every test execution follows this workflow. Log retrieval is not optional — always download and review logs after running a process.
 
 **Regular processes (non-listener):**
-- [ ] Deploy the process: `bash scripts/boomi-deploy.sh active-development/processes/<process>.xml`
+- [ ] Deploy the process: `bash <skill-path>/scripts/boomi-deploy.sh active-development/processes/<process>.xml`
 - [ ] Wait for runtime propagation (~12 seconds)
-- [ ] Execute: `bash scripts/boomi-test-execute.sh --process-id <guid>`
-- [ ] Download logs: `bash scripts/boomi-execution-query.sh --execution-id <execution-id> --logs`
+- [ ] Execute: `bash <skill-path>/scripts/boomi-test-execute.sh --process-id <guid>`
+- [ ] Download logs: `bash <skill-path>/scripts/boomi-execution-query.sh --execution-id <execution-id> --logs`
 - [ ] Review logs — check Notify step output, errors, and processing flow
 
 **WSS listener processes:**
-- [ ] Deploy the process: `bash scripts/boomi-deploy.sh active-development/processes/<process>.xml`
-- [ ] If the deploy printed a collision WARNING: investigate before testing — query executions to confirm your process ID ran, not a stale one
+- [ ] Deploy the process: `bash <skill-path>/scripts/boomi-deploy.sh active-development/processes/<process>.xml`
+- [ ] If the deploy printed a COLLISION WARNING and this is a NEW process: STOP — change the objectName in the WSS Operation to something unique before proceeding (see boomi_error_reference.md Issue #19)
 - [ ] Wait for runtime propagation (~12 seconds)
-- [ ] Test endpoint: `bash scripts/boomi-wss-test.sh --path /ws/simple/<path> --method POST --data '...'`
-- [ ] Query execution **by your process ID**: `bash scripts/boomi-execution-query.sh --process-id <guid>`
-- [ ] Download logs for the latest execution: `bash scripts/boomi-execution-query.sh --execution-id <execution-id> --logs`
+- [ ] Test endpoint: `bash <skill-path>/scripts/boomi-wss-test.sh --path /ws/simple/<path> --method POST --data '...'`
+- [ ] Query execution **by your process ID**: `bash <skill-path>/scripts/boomi-execution-query.sh --process-id <guid>`
+- [ ] Download logs for the latest execution: `bash <skill-path>/scripts/boomi-execution-query.sh --execution-id <execution-id> --logs`
 - [ ] Review logs — check Notify step output, errors, and processing flow
 
 **Querying executions (all filters optional):**
 ```bash
 # Recent executions for a specific process
-bash scripts/boomi-execution-query.sh --process-id <guid>
+bash <skill-path>/scripts/boomi-execution-query.sh --process-id <guid>
 
 # Recent executions across the account
-bash scripts/boomi-execution-query.sh
+bash <skill-path>/scripts/boomi-execution-query.sh
 
 # Filter by status, date, or expand results
-bash scripts/boomi-execution-query.sh --process-id <guid> --status ERROR --limit 10
+bash <skill-path>/scripts/boomi-execution-query.sh --process-id <guid> --status ERROR --limit 10
 ```
 
 ### Testing Workflow Requirements

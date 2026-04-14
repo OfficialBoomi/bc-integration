@@ -24,7 +24,7 @@ The user can also select "Other" to provide a custom path.
 Before copying, locate the `template/` directory inside the bc-integration plugin. Try these approaches in order:
 
 1. **Derive from skill path** — Invoke the `boomi-integration` skill (or check if it's already loaded). The skill's base directory reveals the plugin filesystem path (e.g., `.../bc-integration/skills/boomi-integration` → plugin root is `.../bc-integration`). This works regardless of whether the plugin was installed from the marketplace or loaded via `--plugin-dir`.
-2. **Standard plugin cache** — `~/.claude/plugins/cache/boomi-marketplace/bc-integration/*/template` (pick the latest version if multiple exist)
+2. **Standard plugin cache** — `~/.claude/plugins/cache/boomi-companion/bc-integration/*/template` (pick the latest version if multiple exist)
 3. **Ask the user** — If neither approach finds a `template/` directory, ask: *"I couldn't auto-detect the bc-integration plugin location. Where did you extract or clone the plugin folder?"*
 
 Store the discovered path as `PLUGIN_DIR` (the bc-integration root) for later use.

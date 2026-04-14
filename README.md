@@ -11,8 +11,8 @@ Found a bug or have a feature idea? Email solutions@boomi.com with a clear descr
 ## Installation
 
 ```bash
-/plugin marketplace add OfficialBoomi/boomi-marketplace
-/plugin install bc-integration@boomi-marketplace
+/plugin marketplace add OfficialBoomi/boomi-companion
+/plugin install bc-integration@boomi-companion
 ```
 
 Or browse and install via `/plugin` interactively.

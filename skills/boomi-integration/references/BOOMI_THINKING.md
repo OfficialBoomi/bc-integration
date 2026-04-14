@@ -276,7 +276,7 @@ Multi-path shapes (TP Send, Decision, Try/Catch, Branch) support partial wiring 
 ### Terminal Steps (Return Documents vs Stop)
 **Return Documents:** Returns documents to calling context (parent process or external caller). In subprocess, creates return branches in parent. In listener, returns API response. Documents retain all properties when returned.
 
-**Stop:** Ends processing on current path without returning documents. Other paths continue processing. **CRITICAL** Always use `continue="true"` attribute or the GUI fails to open the process with a stack overflow.
+**Stop:** Ends processing on current path without returning documents. `continue="true"` lets other paths keep processing; `continue="false"` halts the entire process. **CRITICAL** The `continue` attribute must always be present — bare `<stop/>` causes runtime `NullPointerException` and GUI stack overflow (see error reference Issue #15). See `references/steps/stop_step.md`.
 
 **Critical:** Use Return Documents OR Stop at path end, never both.
 

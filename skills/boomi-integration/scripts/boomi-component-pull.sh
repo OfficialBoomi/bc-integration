@@ -11,19 +11,21 @@ require_tools curl jq
 COMPONENT_ID=""
 TARGET_PATH=""
 BRANCH=""
+VERSION=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --component-id) COMPONENT_ID="$2"; shift 2 ;;
     --target-path)  TARGET_PATH="$2"; shift 2 ;;
     --branch)       BRANCH="$2"; shift 2 ;;
+    --version)      VERSION="$2"; shift 2 ;;
     -*)             echo "Unknown option: $1" >&2; exit 1 ;;
     *)              echo "Unexpected argument: $1" >&2; exit 1 ;;
   esac
 done
 
 if [[ -z "$COMPONENT_ID" ]]; then
-  echo "Usage: bash scripts/boomi-component-pull.sh --component-id <ID> [--branch NAME_OR_ID] [--target-path PATH]" >&2
+  echo "Usage: bash scripts/boomi-component-pull.sh --component-id <ID> [--branch NAME_OR_ID] [--version N] [--target-path PATH]" >&2
   exit 1
 fi
 
@@ -35,8 +37,11 @@ elif [[ -n "${BOOMI_DEFAULT_BRANCH_ID:-}" ]]; then
   BRANCH_ID="$BOOMI_DEFAULT_BRANCH_ID"
 fi
 
-# --- Fetch component (tilde syntax for branch) ---
-if [[ -n "$BRANCH_ID" ]]; then
+# --- Fetch component (tilde syntax for branch or version) ---
+if [[ -n "$VERSION" ]]; then
+  url="$(build_api_url "Component/${COMPONENT_ID}~${VERSION}")"
+  echo "Fetching version ${VERSION} of component ${COMPONENT_ID}"
+elif [[ -n "$BRANCH_ID" ]]; then
   url="$(build_api_url "Component/${COMPONENT_ID}~${BRANCH_ID}")"
   echo "Fetching component ${COMPONENT_ID} from branch ${BRANCH:-$BRANCH_ID}"
 else
@@ -56,9 +61,9 @@ if [[ "$RESPONSE_CODE" != "200" ]]; then
   exit 0
 fi
 
-# --- Extract name and type from file (-m 1 avoids SIGPIPE on large payloads) ---
-component_name=$(grep -o 'name="[^"]*"' "$tmpfile" | head -1 | sed 's/name="//;s/"//')
-component_type=$(grep -o 'type="[^"]*"' "$tmpfile" | head -1 | sed 's/type="//;s/"//')
+# --- Extract name and type (awk exits after first match — safe on single-line XML) ---
+component_name=$(awk 'match($0, /name="[^"]*"/) { print substr($0, RSTART+6, RLENGTH-7); exit }' "$tmpfile")
+component_type=$(awk 'match($0, /type="[^"]*"/) { print substr($0, RSTART+6, RLENGTH-7); exit }' "$tmpfile")
 [[ -z "$component_name" ]] && component_name="unknown"
 [[ -z "$component_type" ]] && component_type="unknown"
 
@@ -94,7 +99,12 @@ else
   # Sanitize filename
   safe_name=$(echo "$component_name" | tr '<>:"/\\|?*' '_' | sed 's/^[. ]*//;s/[. ]*$//')
   [[ -z "$safe_name" ]] && safe_name="unnamed_component"
-  file_path="${local_dir}/${safe_name}.xml"
+  # Version-aware filename to avoid overwriting the current version file
+  if [[ -n "$VERSION" ]]; then
+    file_path="${local_dir}/${safe_name}_v${VERSION}.xml"
+  else
+    file_path="${local_dir}/${safe_name}.xml"
+  fi
 fi
 
 # --- Write file (temp file → final path) ---
@@ -112,6 +122,8 @@ fi
 echo "Saved '${component_name}' to ${file_path}"
 
 # --- Update sync state ---
+# Strip tilde suffix (version or branch) — sync state stores the clean component ID
+COMPONENT_ID="${COMPONENT_ID%%~*}"
 content_hash=$(hash_file "$file_path")
 write_sync_state "$COMPONENT_ID" "$file_path" "$content_hash" "$BRANCH_ID"
 

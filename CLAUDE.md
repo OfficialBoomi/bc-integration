@@ -6,11 +6,9 @@ This is a Claude Code plugin for Boomi platform development. It contains skills,
 
 Users add the marketplace and install:
 ```bash
-/plugin marketplace add git@bitbucket.org:officialboomi/boomi-marketplace.git
-/plugin install bc-integration@boomi-marketplace
+/plugin marketplace add OfficialBoomi/boomi-companion
+/plugin install bc-integration@boomi-companion
 ```
-
-Alternatively they can navigate through the /plugin command within claude and add the repo/ plugins visually: `git@github.com:OfficialBoomi/boomi-marketplace.git`
 
 Updates are generally automatically applied when opening a new Claude Code session, or can be manually added via the `/plugin` menu.
 

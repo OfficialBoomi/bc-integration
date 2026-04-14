@@ -20,79 +20,52 @@ Event Streams Setup:
 
 ## CLI Tool
 
-Infrastructure management via `scripts/event-streams-setup.sh`:
+Infrastructure management via `<skill-path>/scripts/event-streams-setup.sh`:
 
 ```bash
 # Query existing environment tokens
-bash scripts/event-streams-setup.sh query-tokens
+bash <skill-path>/scripts/event-streams-setup.sh query-tokens
 
-# Create environment token (for connection components)
-bash scripts/event-streams-setup.sh create-token "MyToken"
+# Create environment token (defaults: allowConsume=true, allowProduce=true)
+bash <skill-path>/scripts/event-streams-setup.sh create-token "MyToken"
+# Create produce-only token
+bash <skill-path>/scripts/event-streams-setup.sh create-token "ProduceOnly" false true
 
 # Create topic
-bash scripts/event-streams-setup.sh create-topic "MyTopic"
+bash <skill-path>/scripts/event-streams-setup.sh create-topic "MyTopic"
 
-# Query topic details
-bash scripts/event-streams-setup.sh query-topic "MyTopic"
+# List all topics
+bash <skill-path>/scripts/event-streams-setup.sh list-topics
+
+# Query topic details (includes REST produce URLs)
+bash <skill-path>/scripts/event-streams-setup.sh query-topic "MyTopic"
 
 # Create subscription
-bash scripts/event-streams-setup.sh create-subscription "MyTopic" "MySubscription"
+bash <skill-path>/scripts/event-streams-setup.sh create-subscription "MyTopic" "MySubscription"
+
+# Provision an ES connection (creates on platform, pulls back encrypted — no credential exposure)
+bash <skill-path>/scripts/event-streams-setup.sh provision-connection "MyESConnection" "MyToken" "MyFolder"
+
+# Produce a test message via REST API (uses first produce-enabled token)
+bash <skill-path>/scripts/event-streams-setup.sh rest-produce "MyTopic" '{"key":"value"}'
+# Produce with a specific token
+bash <skill-path>/scripts/event-streams-setup.sh rest-produce "MyTopic" '{"key":"value"}' "MyToken"
 ```
 
-The tool handles GraphQL authentication and API calls. Requires `BOOMI_API_URL`, `BOOMI_USERNAME`, `BOOMI_API_TOKEN`, `BOOMI_ACCOUNT_ID`, and `BOOMI_ENVIRONMENT_ID` in `.env`.
+The tool handles GraphQL authentication and API calls.
 
-## Topic REST API Endpoints
+## Topic REST Produce API
 
-Topics expose REST endpoints for message production once created in Event Streams GUI.
+Topics expose REST endpoints for producing messages without a Boomi process. Use `query-topic` to retrieve the exact URLs for a topic — no manual URL construction needed:
 
-### Single Message Endpoint
-
-**URL Pattern:**
-```
-https://[region].eventstreams.boomi.com/rest/singlemsg/[account_identifier]/[environment_id]/[topic_name]
+```bash
+bash <skill-path>/scripts/event-streams-setup.sh query-topic "MyTopic"
+# Response includes restProduceUrl and restProduceSingleMsgUrl
 ```
 
-**Example:**
-```
-https://usa-east-web.eventstreams.boomi.com/rest/singlemsg/mycompany-ABC123/a1b2c3d4-e5f6-7890-abcd-ef1234567890/my-topic
-```
+Authentication uses the ES environment token (Bearer token with the `data` field from token query).
 
-**Method:** POST
-
-**Authentication:** Bearer Token (likely platform API key - verify)
-
-**Content Type:** Must match message body (e.g., application/json)
-
-**Message Properties:** Via headers with prefix `x-msg-props-`
-- Example: `x-msg-props-samplePropKey1: value1`
-
-### Multiple Messages Endpoint
-
-**URL Pattern:**
-```
-https://[region].eventstreams.boomi.com/rest/[account_identifier]/[environment_id]/[topic_name]
-```
-
-**Method:** POST
-
-**Content Type:** application/json
-
-**Authentication:** Bearer Token (likely platform API key - verify)
-
-**Payload Structure:**
-```json
-{
-    "messages": [
-        {
-            "payload": "SampleTestPayload1",
-            "properties": {
-                "key1": "Value1",
-                "key2": "Value2"
-            }
-        }
-    ]
-}
-```
+For full REST API details (URL patterns, payload formats, message properties, size limits), see `references/guides/event_streams_rest_api.md`.
 
 ## Topic and Subscription Configuration
 
@@ -152,20 +125,22 @@ Batch Process:
 
 **General Pattern:** Listen is preferred for typical Event Streams pub/sub patterns. Use Consume when process flow requires performing operations before retrieving Event Streams messages.
 
+## Platform Behavior
+
+- Producing to a non-existent topic auto-creates it (no description or subscriptions)
+- Consuming with a non-existent subscription auto-creates it (type set by the operation's `subscriptionType` field). New subscriptions start with zero backlog.
+- Topic name can be overridden at runtime via `dynamicProperties` on the Produce step (key `topic`)
+
 ## Known Constraints
 
-- Topic names are statically configured (no dynamic runtime override observed)
-- Topics may auto-generate when producing to non-existent topics (verification pending)
 - All operations use binary profile types (requestProfileType/responseProfileType)
-- Subscriptions must be pre-configured via GUI
 - Connection uses environment-specific encrypted token
-- Same topic can be referenced by multiple operations
 
 ## GraphQL API Reference
 
 For advanced usage or automation beyond the CLI tool. Requires JWT token authentication (`GET /auth/jwt/generate/{account_id}` with Basic auth, then `POST /graphql` with Bearer token).
 
-**Standard workflow:** Use `scripts/event-streams-setup.sh` instead of manual GraphQL calls.
+**Standard workflow:** Use `<skill-path>/scripts/event-streams-setup.sh` instead of manual GraphQL calls.
 
 ### Topic Operations
 
@@ -176,7 +151,6 @@ mutation {
     environmentId: "{environment_id}"
     name: "{topic_name}"
     description: "{description}"
-    partitions: 1
   }) {
     name
     createdBy
@@ -203,14 +177,18 @@ mutation {
   eventStreamsTopic(environmentId: "{environment_id}", name: "{topic_name}") {
     name
     description
-    partitions
+    restProduceUrl
+    restProduceSingleMsgUrl
     subscriptions {
       name
       type
+      durable
     }
   }
 }
 ```
+
+Optional diagnostic fields (include only when troubleshooting): `producerCount`, `subscriptionCount`, `backlogCount`, `backlogSize`, `messageRateIn`, `messageRateOut`. Subscriptions also support `backlogCount`, `activeConsumerCount`.
 
 ### Subscription Operations
 
@@ -347,7 +325,6 @@ mutation {
 - `environmentId`: ID (required)
 - `name`: ID (required)
 - `description`: String (optional)
-- `partitions`: Integer (optional, default 1)
 
 **Subscription Fields**
 - `environmentId`: ID (required)
@@ -364,11 +341,6 @@ mutation {
 - `expirationTime`: DateTime (optional, defaults to 365 days)
 - `description`: String (optional)
 
-## URL Components Reference
+## URL Reference
 
-| Component | Example | Notes |
-|-----------|---------|-------|
-| Region | usa-east-web | Regional Event Streams endpoint |
-| Account Identifier | mycompany-ABC123 | Account-specific identifier |
-| Environment ID | a1b2c3d4-e5f6-7890-abcd-ef1234567890 | Environment GUID |
-| Topic Name | my-topic | User-defined topic name |
+REST produce URLs are per-topic and available via `query-topic` (`restProduceUrl`, `restProduceSingleMsgUrl`). See `references/guides/event_streams_rest_api.md` for URL format details and manual construction if needed.
