@@ -1,6 +1,7 @@
 {
   "permissions": {
     "defaultMode": "acceptEdits",
+    "outputStyle": "Explanatory",
     "allow": [
       "Skill(bc-integration:boomi-integration)",
       "Read(~/.claude/plugins/**)",

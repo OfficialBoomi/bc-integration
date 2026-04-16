@@ -1,14 +1,16 @@
 # Boomi Integration Project
-This is a boomi oriented workspace, load and use the `boomi-integration` skill for all Boomi tasks. 
+This is a Boomi oriented workspace, load and use the `boomi-integration` skill for all Boomi tasks. 
 
 The skill contains .sh cli tools for all common tasks you would need to achieve. Always look for these tools as a first option. The path to run these cli tools will always be <skill-base-path>/scripts/*
+
+If you find yourself needing to craft custom curl - stop and discuss with the user before proceeding. This is unexpected.
+
+If you attempt to call into the Boomi platform and get an auth error - stop and discuss with the user before proceeding. Repeated calls with invalid auth will get us locked out of the platform.
 
 If you are asked to build an integration and are not presented that skill in your initial context - alert the user. The skill includes critical information for your project. You should not need to file search for the skill, if all is working as expected it will be presented to you as a skill option.
 
 ## Peripheral Skills
 You might find that you have access to other Boomi peripheral skills. Use these if the user asks you to, or you may offer them.  
-
-If available, `implementing-boomi-connectors` skill helps develop with the Boomi connector SDK. Do not develop custom connectors with the Java SDK unless specifically asked.
 
 If available, `boomi-marketplace` skill allows you to query from a library of assets and template implementations. Discuss with the user before importing assets to an account.
 

@@ -1,6 +1,31 @@
 # Changelog
 
-All notable changes are documented here.
+## 0.5.37
+
+- Add date subtypes (relative, last, lastsuccessful) to Set Properties reference with runtime-validated XML and behavioral notes
+- Add legacy database connection requirement to sql and sp value types
+- Add connector input filter attributes (elementToSetId, elementToSetName) and enforceSingleResult zero-result behavior
+
+
+## 0.5.36
+
+- feat: add VERSION file to skill directory; include version in user-agent header (`boomi-companion/<version>`)
+- fix: prevent skill sync step from using stale commit after version bump
+
+
+## 0.5.35
+
+- fix: folder creation now falls back to account root when parent folder ID is invalid or missing, preventing auth lockouts from manual API retries
+
+
+## 0.5.34
+
+- Refine template CLAUDE.md: add guidance for custom curl and auth errors, fix Boomi capitalization, remove connector SDK peripheral skill reference
+
+## 0.5.33
+
+- Add Explanatory output style as default for new template projects
+
 
 ## 0.5.32
 
