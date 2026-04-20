@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.38
+
+- Add `boomi-component-search.sh` — query components by folder, name, type, or reference relationship via `ComponentMetadata/query` and `ComponentReference/query`. Results land in `active-development/inventories/component_search_<timestamp>.json` (ephemeral alongside other working files). Folder scoping is flat; implicit filters `currentVersion=true` and `deleted=false` apply to component queries. Type filter accepts Boomi API-level types (e.g. `connector-settings` for a connection, `connector-action` for an operation) — runtime-validated against a real account.
+- `boomi-component-search.sh --folder` now accepts id, exact name, or a LIKE pattern with `%` wildcards (e.g. `--folder 'Acme-%'`). Folder resolution paginates via `queryMore` so broad patterns aren't silently capped at the 100-result page size. Multiple matches are unioned via OR on `folderId`, and the resolved id list is surfaced in the output file's `metadata.filters.resolvedFolders`. Non-wildcard input preserves the previous behavior: id → exact-name → error on zero or ambiguous matches.
+- `boomi-component-search.sh --related-to` now resolves the target component's current version up front and pins both `parentComponentId` and `parentVersion` on the `references` side of the query (components the target references). The `ComponentReference/query` endpoint rejects `parentComponentId` without its `parentVersion` companion, which made the previous flag DOA. Resolved version is surfaced in the output file's `metadata.filters.resolvedVersion`. Each output record carries a `relation` field of `"references"` or `"referenced-by"` to make direction explicit.
+- `boomi-component-search.sh` pagination and final output assembly both stream through tempfiles and read back via `jq --slurpfile` instead of passing JSON via `jq --argjson`. Removes two separate `ARG_MAX` ceilings that previously truncated result sets past ~1-2k records with `jq: Argument list too long`; stress-tested at 5,000 records (2.6 MB output file).
+- `boomi-component-search.sh` writes results atomically (`.tmp` + `mv`), with trap-based tempfile cleanup. Prevents the 0-byte orphan files that could appear in `active-development/inventories/` when the output-assembly `jq` failed mid-write.
+- `boomi-component-search.sh` now emits `log_activity` entries on all failure paths (folder resolve, version resolve, query failure) with the failing stage tagged — previously only success paths were logged, which was asymmetric with sibling scripts like `boomi-undeploy.sh`.
+
+
 ## 0.5.37
 
 - Add date subtypes (relative, last, lastsuccessful) to Set Properties reference with runtime-validated XML and behavioral notes

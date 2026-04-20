@@ -21,6 +21,7 @@ Specialized bash tools handle different aspects of the development lifecycle. Al
 - **boomi-component-pull.sh**: Download components from platform to local
 - **boomi-component-diff.sh**: Compare two versions of a component (structured JSON diff)
 - **boomi-version-history.sh**: List component version history
+- **boomi-component-search.sh**: Query components by folder, name, type, or reference relationship. Writes JSON to `active-development/inventories/component_search_<timestamp>.json`. Folder scoping is flat (no subfolder recursion); `--folder` accepts id, exact name, or LIKE pattern with `%` wildcards (multiple matches unioned). `--related-to` cannot combine with other filters. Implicit filters: `currentVersion=true`, `deleted=false`.
 
 **Deployment & Testing**:
 - **boomi-deploy.sh**: Deploy processes to runtime environments
@@ -85,6 +86,35 @@ bash <skill-path>/scripts/boomi-execution-query.sh [--process-id <guid>] [--stat
 # Download logs for a specific execution
 bash <skill-path>/scripts/boomi-execution-query.sh --execution-id <execution-id> --logs
 ```
+
+**Component Search** (discovery primitive — results land in `active-development/inventories/<timestamp>.json` for later reference):
+```bash
+# Everything in a specific folder (flat — no subfolder recursion).
+# --folder accepts an id, an exact name, or a LIKE pattern with % wildcards;
+# multiple matches are unioned.
+bash <skill-path>/scripts/boomi-component-search.sh --folder "AcmeCorp-EmailNotification"
+bash <skill-path>/scripts/boomi-component-search.sh --folder "AcmeCorp-%"
+
+# All connections in an account — the API-level type is connector-settings.
+# To narrow to a specific connector, filter the saved JSON by subType
+# (e.g. "salesforce", "http", "db") with jq after the search completes.
+bash <skill-path>/scripts/boomi-component-search.sh --type connector-settings
+
+# Processes with "Invoice" in the name (LIKE is case-insensitive)
+bash <skill-path>/scripts/boomi-component-search.sh --name '%Invoice%' --type process
+
+# Multiple types in one query (OR semantics)
+bash <skill-path>/scripts/boomi-component-search.sh --type connector-settings,connector-action
+
+# What references this component (and what does it reference)? Each record has a `relation` field
+# ("references" or "referenced-by") to distinguish direction.
+# Note: --related-to cannot be combined with other filters.
+bash <skill-path>/scripts/boomi-component-search.sh --related-to <componentId>
+```
+
+**`--type` takes the API-level component type, not the Boomi UI label.** A Boomi "connection" is `connector-settings` (with a `subType` naming the connector); an "operation" is `connector-action`. Other common types: `process`, `transform.map`, `profile.xml`, `profile.json`, `profile.db`, `profile.edi`, `profile.flatfile`, `script.processing`, `webservice`, `flowservice`, `queue`.
+
+Dependency walking: to list all dependencies of a process, call `--related-to <processId>` to find immediate references, then pull any you want to inspect via `boomi-component-pull.sh` and read their `<bns:object>` / `<componentReferences>` for deeper recursion.
 
 **Branch Workflows** (only when user has explicitly opted into Branch & Merge):
 ```bash

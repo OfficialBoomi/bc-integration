@@ -182,6 +182,7 @@ Default to the local `references/` content — it is curated and verified for th
     ├── boomi-undeploy.sh        # Remove deployments from runtime environment
     ├── boomi-version-history.sh # List component version history (versions, dates, branch, current status)
     ├── boomi-component-diff.sh  # Compare two versions of a component (structured JSON diff)
+    ├── boomi-component-search.sh # Query components by folder/name/type/reference; writes JSON to active-development/inventories/
     ├── event-streams-setup.sh   # Create Event Streams topics and subscriptions
     └── boomi-branch.sh         # Branch and merge operations (list, create, delete, merge, status)
 ```
@@ -190,7 +191,7 @@ Default to the local `references/` content — it is curated and verified for th
 ```
 user-project/
 ├── .env                        # Credentials (gitignored)
-└── active-development/         # All working files
+└── active-development/         # All working files (ephemeral — cleaned up on review)
     ├── processes/
     ├── profiles/
     ├── connections/
@@ -200,7 +201,8 @@ user-project/
     ├── document-caches/
     ├── scripts/
     ├── .sync-state/            # Sync tracking
-    └── feedback/               # Test results
+    ├── feedback/               # Test results
+    └── inventories/            # Component-search results (see boomi-component-search.sh)
 ```
 
 Component organization follows standard folder structure (see `references/guides/cli_tool_reference.md` for component type to folder mapping).
@@ -208,7 +210,7 @@ Component organization follows standard folder structure (see `references/guides
 ## Development Philosophy
 
 **Project-First Organization:**
-Create dedicated Boomi platform folders for each integration/feature/API using the naming convention: `ProjectName-ShortDescription` (e.g., `JDPowerPOC-EmailNotification`, `AcmeMVP-InventorySync`). Never push components without a folder ID.
+Create dedicated Boomi platform folders for each integration/feature/API using the naming convention: `ProjectName-ShortDescription` (e.g., `AcmeMVP-InventorySync`). Never push components without a folder ID.
 
 **Complete Programmatic Development:**
 - Implement ALL steps programmatically (Set Properties, Maps, REST connectors, Decision, Process Components)
@@ -268,7 +270,7 @@ When user provides component ID or platform URL: Pull the component, scan for de
 The `.sync-state/` directory tracks component synchronization (IDs, versions, conflict detection). Managed automatically by CLI tools—never manually edit.
 
 **CLI Tools:**
-Ten specialized tools handle development lifecycle. All tools are bash scripts (except profile-inspect which is Python stdlib). They require `curl` and `jq` and source credentials directly from `.env` — no Python dependencies, no virtual environments.
+Eleven specialized tools handle development lifecycle. All tools are bash scripts (except profile-inspect which is Python stdlib). They require `curl` and `jq` and source credentials directly from `.env` — no Python dependencies, no virtual environments.
 
 - `boomi-folder-create.sh` - Create project folders on platform
   - Required: `folder_name` (positional)
@@ -297,6 +299,8 @@ Ten specialized tools handle development lifecycle. All tools are bash scripts (
 
 - `boomi-component-diff.sh` - Compare two versions of a component via ComponentDiffRequest
   - Required: `--component-id`, `--source <N>`, `--target <N>`
+
+- `boomi-component-search.sh` - Query components by `--folder <id|name|%pattern%>` (flat, multiple matches unioned), `--name <%pattern%>`, `--type <csv>` (API-level types — `connector-settings`=connection, `connector-action`=operation), or `--related-to <id>` (cannot combine with other filters). Writes `active-development/inventories/component_search_<timestamp>.json`; implicit `currentVersion=true`, `deleted=false` on non-related-to queries.
 
 - `boomi-branch.sh` - Branch and merge operations (only for Branch & Merge enabled accounts)
   - `list` — list all branches
@@ -420,7 +424,7 @@ See `references/guides/boomi_error_reference.md` Issue #3 for details.
 - Root → ClaudeCode (`BOOMI_TARGET_FOLDER`) → Project-Specific → Components
 - **ALL components MUST go into organized folders**, never create components into the account root
 - Create project folders using naming convention: `ProjectName-ShortDescription`
-- Example: `bash <skill-path>/scripts/boomi-folder-create.sh "JDPower-EmailNotification"`
+- Example: `bash <skill-path>/scripts/boomi-folder-create.sh "AcmeCorp-EmailNotification"`
 
 **Component Creation Workflow:**
 ```bash
@@ -434,7 +438,7 @@ bash <skill-path>/scripts/boomi-component-create.sh active-development/profiles/
 
 **Folder Naming Convention:**
 Format: `ProjectName-ShortDescription`
-- Examples: `JDPower-EmailNotification`, `TechCorp-OrderSync`, `Acme-APIShowcase`
+- Examples: `TechCorp-OrderSync`, `Acme-APIShowcase`
 
 **Critical Requirements:**
 - Use actual folder GUID in `folderId` attribute (not `folderFullPath`)
