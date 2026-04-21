@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.40
+
+- Add developer-offering disclaimer to `skills/boomi-integration/README.md` to match the plugin README
+
+
+## 0.5.39
+
+- Add disclaimer to README clarifying Boomi Companion is a publicly available developer offering, not an officially supported Boomi product
+
+
 ## 0.5.38
 
 - Add `boomi-component-search.sh` — query components by folder, name, type, or reference relationship via `ComponentMetadata/query` and `ComponentReference/query`. Results land in `active-development/inventories/component_search_<timestamp>.json` (ephemeral alongside other working files). Folder scoping is flat; implicit filters `currentVersion=true` and `deleted=false` apply to component queries. Type filter accepts Boomi API-level types (e.g. `connector-settings` for a connection, `connector-action` for an operation) — runtime-validated against a real account.
