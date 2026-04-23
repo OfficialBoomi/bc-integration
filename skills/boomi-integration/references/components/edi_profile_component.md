@@ -227,18 +227,48 @@ The `EdiOptions` element contains one child element based on the selected standa
 | `ignoreseg` | boolean | Ignore unknown segments |
 | `ignoreelem` | boolean | Ignore unknown elements |
 
+See § Transaction Set ID Reference below for common `transmission` / `tranfuncid` pairs and the HIPAA `stdversion` (Implementation Convention) code set.
+
 ### EdiEdifactOptions
 
 ```xml
-<EdiEdifactOptions messageType="INVOIC" version="D" release="96A" controlAgency="UN"/>
+<EdiEdifactOptions messageType="ORDERS" version="D" release="96A" controlAgency="UN"/>
 ```
 
 | Attribute | Type | Purpose |
 |-----------|------|---------|
-| `messageType` | string | EDIFACT message type |
-| `version` | string | Version number |
-| `release` | string | Release number |
-| `controlAgency` | string | Controlling agency |
+| `messageType` | string | EDIFACT message type code (e.g., `ORDERS`, `INVOIC`, `DESADV`, `CONTRL`) |
+| `version` | string | Version designator — typically `D` (Draft) for most EDIFACT messages |
+| `release` | string | Release designator (e.g., `93A`, `96A`, `99A`, `01B`) |
+| `controlAgency` | string | Controlling agency — typically `UN` for standard EDIFACT |
+
+#### Configuration Differences from X12
+
+X12 and EDIFACT are the two dominant general-purpose B2B EDI standards and share an envelope-and-loops architecture, so their Boomi configuration surface overlaps in most respects — but diverges in four mechanics worth calling out:
+
+**Version + Release**: EDIFACT splits version metadata into two fields (unlike X12's single `stdversion`). Combined they form the directory reference: `version="D"` + `release="96A"` = D.96A.
+
+**EDIFACT delimiter defaults** differ from X12. When `standard="edifact"`, default delimiters are:
+
+| Delimiter | EDIFACT | X12 |
+|-----------|---------|-----|
+| Element separator (`fileDelimiter`) | `plusdelimited` (+) | `stardelimited` (*) |
+| Segment terminator (`segmentchar`) | `singlequote` (') | `tilde` (~) or `newline` |
+
+EDIFACT ORDERS profile example:
+```xml
+<EdiFileOptions fileType="delimited">
+  <EdiDelimitedOptions fileDelimiter="plusdelimited" repeatDelimiter="tildedelimited" segmentchar="singlequote"/>
+  <EdiDataOptions/>
+</EdiFileOptions>
+<EdiOptions>
+  <EdiEdifactOptions controlAgency="UN" messageType="ORDERS" release="99A" version="D"/>
+</EdiOptions>
+```
+
+**EDIFACT section structure**: Like X12, EDIFACT profiles use three root containers (Header key=1, Detail key=2, Summary key=3). EDIFACT additionally uses a **UNS segment** as an explicit section separator between detail and summary — X12 uses implicit loop boundaries instead.
+
+**EDIFACT composite elements**: Composites are pervasive in EDIFACT (unlike X12 where they are the exception). Most EDIFACT segments have 2-6 composite sub-elements. The `.N` suffix notation distinguishes sub-elements: `BGM01.1` (document name code), `BGM01.2` (code list qualifier). When mapping, target the specific composite sub-element (e.g., `BGM01.1`), not the composite parent.
 
 ### EdiHL7Options
 
@@ -301,6 +331,52 @@ Empty element - no attributes. Used for custom/proprietary formats.
 ```xml
 <EdiUserDefOptions/>
 ```
+
+## Transaction Set ID Reference
+
+Maps common X12 transaction set IDs to their GS-01 Functional Group codes (used above in `transmission` and `tranfuncid`), plus the full Implementation Convention references required by HIPAA 5010 profiles.
+
+### X12 Transaction Set → GS-01 Functional Group Code
+
+| Transaction | GS-01 | Purpose |
+|---|---|---|
+| 810 | `IN` | Invoice |
+| 820 | `RA` | Payment Order / Remittance Advice |
+| 830 | `PS` | Planning Schedule |
+| 832 | `SC` | Price / Sales Catalog |
+| 846 | `IB` | Inventory Inquiry / Advice |
+| 850 | `PO` | Purchase Order |
+| 855 | `PR` | PO Acknowledgment |
+| 856 | `SH` | Ship Notice / Manifest (ASN) |
+| 860 | `PC` | PO Change Request |
+| 270/271 | `HS` | Eligibility Inquiry / Response |
+| 276/277 | `HR` | Claim Status Request / Response |
+| 278 | `HI` | Services Review |
+| 834 | `BE` | Benefit Enrollment |
+| 835 | `HP` | Claim Payment / Remittance |
+| 837 | `HC` | Health Care Claim |
+| 999 | `FA` | Implementation Acknowledgment |
+
+### HIPAA 5010 Implementation Convention (GS-08)
+
+HIPAA-covered profiles require the full Implementation Convention reference in `stdversion` (profile) and `gsVersion` (trading partner). Generic `005010` is rejected by compliant receivers.
+
+| Transaction | Implementation Convention |
+|---|---|
+| 837 Professional | `005010X222A2` |
+| 837 Institutional | `005010X223A3` |
+| 837 Dental | `005010X224A3` |
+| 835 Claim Payment | `005010X221A1` |
+| 834 Benefit Enrollment | `005010X220A1` |
+| 270/271 Eligibility | `005010X279A1` |
+| 276 Claim Status Request | `005010X212` |
+| 277 / 277CA Claim Status | `005010X214` |
+| 278 Services Review | `005010X217` |
+| 275 Patient Information (Clinical) | `005010X275` |
+| 275 Patient Information (Attachments) | `005010X275A1` |
+| 820 Premium Payment | `005010X218` |
+| 824 Application Advice | `005010X186A1` |
+| 999 Implementation Ack | `005010X231A1` |
 
 ## Element Hierarchy
 
@@ -730,9 +806,11 @@ EDI elements may contain composites (sub-elements separated by composite delimit
 
 Instance identifiers and qualifiers work together to target specific occurrences of repeating loops/segments. Qualifiers are the data values (e.g., "SF", "ST") that distinguish one occurrence from another. Instance identifiers are the named instances defined on a parent element to isolate subsets of data based on those qualifiers.
 
-For example, an EDI 850 may contain multiple N1 loops — one for Ship From (SF) and one for Ship To (ST). Instance identifiers let maps pull from the correct loop based on the qualifier element value.
+For example, an X12 850 may contain multiple N1 loops — one for Ship From (SF) and one for Ship To (ST). An EDIFACT ORDERS may contain multiple NAD segments — one for Buyer (BY) and one for Supplier (SU). Instance identifiers let maps pull from the correct loop based on the qualifier element value.
 
 Supported on EDI, XML, and JSON profiles. Not available for flat file or database profiles.
+
+**EDIFACT and X12 use identical tagList mechanics.** The same `TagList`, `GroupingExpression`, and `TagExpression` elements work for both standards. The only difference is that EDIFACT qualifier values often live in **composite sub-elements** (e.g., `RFF01.1` rather than `REF01`), and `identifierName` supports composite sub-element references directly.
 
 **Two-tier configuration:** When creating profiles with instance identifiers, configure both:
 1. **QualifierList** on the qualifying element (e.g., N101) — declares valid qualifier values for standards completeness (see QualifierList under EdiDataElement Attributes)
@@ -921,6 +999,46 @@ Maps reference nested instances using the **child's** `listKey` as `fromTagListK
      ^Header      ^N1(Buyer)               ^REF(VR within Buyer)    ^REF02 field
 ```
 
+#### EDIFACT tagList Example (NAD with Nested RFF)
+
+EDIFACT tagLists follow the same structure as X12. The key difference is that EDIFACT qualifier values often live in composite sub-elements, referenced via the `.N` notation in `identifierName`:
+
+```xml
+<tagLists>
+  <!-- NAD+BY (Buyer) — qualifier in simple element NAD01 -->
+  <TagList elementKey="25" listKey="1">
+    <GroupingExpression operator="and">
+      <TagExpression identifierKey="27" identifierName="NAD01" identifierType="value">
+        <identifierValue>BY</identifierValue>
+      </TagExpression>
+    </GroupingExpression>
+  </TagList>
+  <!-- NAD+SU (Supplier) -->
+  <TagList elementKey="25" listKey="2">
+    <GroupingExpression operator="and">
+      <TagExpression identifierKey="27" identifierName="NAD01" identifierType="value">
+        <identifierValue>SU</identifierValue>
+      </TagExpression>
+    </GroupingExpression>
+  </TagList>
+  <!-- RFF+VA within Buyer NAD — qualifier in composite sub-element RFF01.1 -->
+  <TagList elementKey="40" listKey="4" parentListKey="1">
+    <GroupingExpression operator="and">
+      <TagExpression identifierKey="42" identifierName="RFF01.1" identifierType="value">
+        <identifierValue>VA</identifierValue>
+      </TagExpression>
+    </GroupingExpression>
+  </TagList>
+</tagLists>
+```
+
+Common EDIFACT qualifier patterns for tagLists:
+
+| Segment | Qualifier Element | Tested Values | X12 Equivalent |
+|---|---|---|---|
+| NAD | NAD01 | BY (Buyer), SU (Supplier) | N1+N101 |
+| RFF | RFF01.1 (composite sub-element) | VA (VAT Registration) | REF+REF01 |
+
 ### Segment-Level Qualifier Filter
 
 An alternative to tagLists for simpler scenarios. Place qualifier attributes directly on an `EdiSegment` to filter repeating segments to a single matching occurrence:
@@ -988,6 +1106,114 @@ Missing required attributes cause validation failures on push. Ensure each eleme
 **EdiDataElement required attributes:**
 - `key`, `name`, `dataType`, `length`, `minLength`, `maxLength`, `mandatory`, `isMappable`, `isNode`
 - For `datapositioned`: also requires `startColumn`
+
+## Schema Validation Rules (HTTP 400 Prevention)
+
+The platform API schema validator rejects the following. Each rule corresponds to a 400 error returned on push.
+
+### Forbidden Attributes
+
+| Element | Forbidden | Correct Approach |
+|---------|-----------|------------------|
+| `EdiGeneralInfo` `standard` | Uppercase values (`"X12"`, `"EDIFACT"`) | Lowercase: `"x12"`, `"edifact"` |
+| `EdiDelimitedOptions` | `elementDelimiter`, `segmentTerminator`, `subelementDelimiter`, `repetitionSeparator` | Use `fileDelimiter`, `segmentchar`, `compositeDelimiter`, `repeatDelimiter` |
+| `EdiX12Options` | `ackExpected`, `ackVersion`, `functionalGroupIdentifier`, `version`, `release` | Use `isacontrolstandard`, `isacontrolversion`, `stdversion`, `tranfuncid`, `transmission` |
+| `EdiDataElement` | `minUse`, `maxUse` | Use `mandatory` (boolean) for required/optional |
+| `EdiLoop` | `minOccurs`, `maxOccurs` | Use `loopRepeat` (`1` or `-1` for unbounded) |
+| `EdiSegment` | `instanceIdentifier`, `description`, `minUse` | Use `maxUse`, `mandatory`; put qualifier logic in `tagLists` |
+| `DataFormat` | Self-closing (`<DataFormat/>`) | Must have a child element — see DataFormat rules below |
+
+### DataFormat Child Element Requirements
+
+`DataFormat` must always contain one child element matching the `dataType`:
+
+```xml
+<!-- AN / ID (character data) -->
+<DataFormat><ProfileCharacterFormat/></DataFormat>
+
+<!-- DT (date) -->
+<DataFormat><ProfileDateFormat dateFormat="yyyyMMdd"/></DataFormat>
+
+<!-- TM (time) -->
+<DataFormat><ProfileDateFormat dateFormat="HHmm"/></DataFormat>
+
+<!-- R (real/float) -->
+<DataFormat><ProfileNumberFormat numberFormat="#.#" signedField="false"/></DataFormat>
+
+<!-- N0, N2 (implied decimal) -->
+<DataFormat><ProfileNumberFormat numberFormat="" impliedDecimal="0" signedField="false"/></DataFormat>
+```
+
+### Single-Segment Loops Must Be Wrapped
+
+Every repeating segment group must be a named `EdiLoop`. Single-segment qualifier-driven repeats (REF, DTM, PER, SAC, TD5, and any segment that repeats with different qualifier values) MUST be wrapped in their own named `EdiLoop` even though they contain only one segment. Bare repeating segments have no loop key, so `tagLists` cannot reference them.
+
+```xml
+<!-- WRONG — bare segment, tagLists cannot reference it -->
+<EdiSegment name="REF" maxUse="-1" loopingOption="unique" .../>
+
+<!-- CORRECT — named loop wraps the segment; tagLists can use elementKey="90" -->
+<EdiLoop key="90" name="REF" loopId="REF" loopRepeat="-1" loopingOption="occurrence" isNode="true">
+  <EdiSegment key="91" name="REF" maxUse="1" loopingOption="unique" ...>
+    ...
+  </EdiSegment>
+</EdiLoop>
+```
+
+### HL Hierarchy Auto-Generation Pattern
+
+For HL-based transactions (856 ASN, 837, 835), each HL level is a named nested loop. Child levels nest inside parent levels.
+
+**On the HL `EdiSegment`:**
+- `useAdditionalCriteria="true"`
+- `additionalElementName="HL03"`
+- `additionalElementValue="S"` (or `O`, `T`, `P`, `I` — the level code for this loop)
+- `additionalElementKey="[key of HL03 in this same segment]"`
+
+**On HL data elements:**
+- `HL01`: `autoGenOption="hierarc1"` + `isMappable="false"` — platform auto-generates; do not map
+- `HL02`: `autoGenOption="hierarc2"` + `isMappable="false"` — platform auto-generates; do not map
+- `HL03`: `isMappable="true"` — its key is what `additionalElementKey` references
+- `HL04`: `isMappable="true"` — optional, indicates child presence
+
+```xml
+<EdiLoop key="13" name="HL_S" loopId="HL_S" loopRepeat="-1" loopingOption="occurrence" isNode="true">
+  <EdiSegment key="14" name="HL" segmentName="Hierarchical Level (Shipment)"
+              position="010" mandatory="true" maxUse="1" loopingOption="unique" isNode="true"
+              useAdditionalCriteria="true" additionalElementKey="17"
+              additionalElementName="HL03" additionalElementValue="S">
+    <EdiDataElement key="15" name="HL01" dataType="AN" mandatory="true"
+                    autoGenOption="hierarc1" isMappable="false" isNode="true"
+                    minLength="1" maxLength="12">
+      <DataFormat><ProfileCharacterFormat/></DataFormat>
+    </EdiDataElement>
+    <EdiDataElement key="16" name="HL02" dataType="AN" mandatory="false"
+                    autoGenOption="hierarc2" isMappable="false" isNode="true"
+                    minLength="1" maxLength="12">
+      <DataFormat><ProfileCharacterFormat/></DataFormat>
+    </EdiDataElement>
+    <EdiDataElement key="17" name="HL03" dataType="ID" mandatory="true"
+                    isMappable="true" isNode="true" minLength="1" maxLength="2">
+      <DataFormat><ProfileCharacterFormat/></DataFormat>
+    </EdiDataElement>
+    <EdiDataElement key="18" name="HL04" dataType="ID" mandatory="false"
+                    isMappable="true" isNode="true" minLength="1" maxLength="1">
+      <DataFormat><ProfileCharacterFormat/></DataFormat>
+    </EdiDataElement>
+  </EdiSegment>
+  <!-- shipment-level segments, then HL_O nested here, then HL_P nested in HL_O, etc. -->
+</EdiLoop>
+```
+
+### tagLists Decision Rule
+
+Apply this rule universally to every `EdiLoop` in the profile regardless of segment name:
+
+> **For each `EdiLoop` with `loopRepeat="-1"`: does its first/primary `EdiDataElement` have `dataType="ID"` (a qualifier/code that identifies which instance this is)? If yes → that loop needs `tagLists` entries.**
+
+Applies equally to N1, REF, DTM, SAC, PER, TD5, SLN, LM, NAD, RFF, and any other qualifying loop. Do not enumerate segment names — apply the rule universally.
+
+**tagLists completeness:** Include all standard qualifier values for each element, not just values visible in the sample data. The profile must handle values that may arrive in production even if not seen during build.
 
 ## Critical: Segment Terminator Mismatch
 

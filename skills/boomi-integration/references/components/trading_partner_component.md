@@ -6,6 +6,7 @@
 - Component Structure
 - ContactInfo
 - PartnerInfo (X12)
+- PartnerInfo (EDIFACT)
 - PartnerCommunication
   - Communication Methods
   - AS2 Configuration
@@ -109,7 +110,7 @@ Company and contact details for the trading partner. The platform API requires t
 
 ## PartnerInfo (X12)
 
-Standard-specific partner settings. The child element depends on the `standard` attribute. This section documents X12 (the most common); other standards follow the same pattern with standard-specific options.
+Standard-specific partner settings. The child element depends on the `standard` attribute on `TradingPartner`.
 
 ```xml
 <PartnerInfo>
@@ -200,6 +201,165 @@ Standard-specific partner settings. The child element depends on the `standard` 
 | `respagencycode` | string | GS07 Responsible Agency Code (e.g., `X`) |
 | `gscontrol` | string | GS06 Group Control Number |
 | `gsVersion` | string | GS08 Version (e.g., `004010`) |
+
+## PartnerInfo (EDIFACT)
+
+When `standard="edifact"`, the `PartnerInfo` element contains `EdifactPartnerInfo` with options, control info, and optional functional group configuration.
+
+```xml
+<PartnerInfo>
+  <EdifactPartnerInfo>
+    <EdifactOptions acknowledgementoption="ackitem"
+                    envelopeoption="groupall"
+                    filteracknowledgements="true"
+                    includeUNA="true"
+                    outboundInterchangeValidation="false"/>
+    <EdifactControlInfo>
+      <UNBControlInfo interchangeId="PARTNERID"
+                      interchangeIdQual="ZZZ"
+                      syntaxId="UNOB"
+                      syntaxVersion="3"
+                      ackRequest="true"
+                      testIndicator="1"/>
+      <UNGControlInfo useFunctionalGroups="false"/>
+      <UNHControlInfo version="D"
+                      release="96A"
+                      controllingAgency="UN"/>
+    </EdifactControlInfo>
+  </EdifactPartnerInfo>
+</PartnerInfo>
+```
+
+### EdifactOptions Attributes
+
+| Attribute | Type | Values | Purpose |
+|---|---|---|---|
+| `acknowledgementoption` | enum | `donotackitem`, `ackitem` | CONTRL acknowledgment generation |
+| `filteracknowledgements` | boolean | - | Filter inbound CONTRL from document flow |
+| `envelopeoption` | enum | `groupall`, `groupfg`, `groupmessage` | Outbound envelope grouping |
+| `includeUNA` | boolean | - | Include UNA service string advice in outbound documents |
+| `outboundInterchangeValidation` | boolean | - | Validate outbound interchanges |
+| `outboundValidationOption` | enum | `filterError`, `failAll` | How to handle outbound validation failures |
+
+EDIFACT delimiters (`+` element separator, `'` segment terminator) are configured at the profile level in `EdiDelimitedOptions`, not on the trading partner component.
+
+### EdifactEnvelopeOption Values
+
+| Value | Description |
+|---|---|
+| `groupall` | All documents in a single interchange |
+| `groupfg` | Group by functional group |
+| `groupmessage` | Each message in its own envelope |
+
+### UNBControlInfo Attributes (Interchange Level)
+
+| Attribute | Type | Purpose | EDIFACT Segment |
+|---|---|---|---|
+| `interchangeIdQual` | string | Sender/receiver ID qualifier code | UNB02:2 / UNB03:2 |
+| `interchangeId` | string | Sender/receiver interchange ID | UNB02:1 / UNB03:1 |
+| `interchangeAddress` | string | Routing address | UNB02:3 / UNB03:3 |
+| `interchangeSubAddress` | string | Routing sub-address | UNB02:4 / UNB03:4 |
+| `syntaxId` | string | Syntax identifier (e.g., `UNOB`) | UNB01:1 |
+| `syntaxVersion` | string | Syntax version number (e.g., `3`) | UNB01:2 |
+| `priority` | string | Processing priority code | UNB08 |
+| `appReference` | string | Application reference | UNB07 |
+| `ackRequest` | string | Acknowledgment request (`true`/`false`) | UNB09 |
+| `commAgreement` | string | Communications agreement ID | UNB10 |
+| `testIndicator` | string | Test indicator (`1`=Test) | UNB11 |
+
+**`syntaxId` values (UNB01:1):**
+
+| Code | Character Set |
+|---|---|
+| `UNOA` | Level A — ASCII (uppercase, digits, limited punctuation) |
+| `UNOB` | Level B — ASCII (adds lowercase and special characters) |
+| `UNOC` | ISO 8859-1 (Latin 1 — Western European) |
+| `UNOD` | ISO 8859-2 (Latin 2 — Central / Eastern European) |
+| `UNOE` | ISO 8859-5 (Cyrillic) |
+| `UNOF` | ISO 8859-7 (Greek) |
+| `UNOG` | ISO 8859-3 (Latin 3 — Southern European) |
+| `UNOH` | ISO 8859-4 (Latin 4 — Baltic / Nordic) |
+| `UNOI` | ISO 8859-6 (Arabic) |
+| `UNOJ` | ISO 8859-8 (Hebrew) |
+| `UNOK` | ISO 8859-9 (Latin 5 — Turkish) |
+| `UNOY` | UTF-8 (Unicode) |
+
+The `syntaxId` must match the character set actually used in the interchange; mismatched values cause parsing failures.
+
+### UNGControlInfo Attributes (Functional Group — Optional)
+
+| Attribute | Type | Purpose |
+|---|---|---|
+| `useFunctionalGroups` | boolean | Toggle UNG/UNE envelope generation |
+| `applicationIdQual` | string | Application sender ID qualifier |
+| `applicationId` | string | Application sender identification |
+
+### UNHControlInfo Attributes (Message Level)
+
+| Attribute | Type | Purpose | EDIFACT Segment |
+|---|---|---|---|
+| `version` | string | Version number (e.g., `D`) | UNH02:2 |
+| `release` | string | Release number (e.g., `96A`) | UNH02:3 |
+| `controllingAgency` | string | Controlling agency (e.g., `UN`) | UNH02:4 |
+| `assocAssignedCode` | string | Association assigned code | UNH02:5 |
+| `commonAccessRef` | string | Common access reference | UNH03 |
+
+### EdifactDocumentOptions Attributes
+
+Used in `DocumentType` entries for EDIFACT partners:
+
+```xml
+<DocumentType profileId="edi-profile-component-id" type="ORDERS">
+  <PartnerDocumentOptions>
+    <EdifactDocumentOptions expectAckForOutbound="true"
+                            validateOutboundMessages="false"
+                            inboundErrorsOption="na"
+                            qualifierValidation="true"/>
+  </PartnerDocumentOptions>
+  <Tracking><TrackedFields/></Tracking>
+</DocumentType>
+```
+
+| Attribute | Type | Values | Purpose |
+|---|---|---|---|
+| `expectAckForOutbound` | boolean | - | Expect CONTRL back for outbound documents |
+| `validateOutboundMessages` | boolean | - | Validate outbound messages |
+| `inboundErrorsOption` | enum | `na`, `rejected` | Inbound error routing: `na` (no special routing) or `rejected` (route invalid docs to Errors path) |
+| `qualifierValidation` | boolean | - | Validate qualifier values |
+
+### Bare Minimum EDIFACT Trading Partner
+
+```xml
+<TradingPartner xmlns="">
+  <ContactInfo/>
+  <PartnerInfo>
+    <EdifactPartnerInfo>
+      <EdifactOptions/>
+      <EdifactControlInfo>
+        <UNBControlInfo/>
+        <UNGControlInfo useFunctionalGroups="false"/>
+        <UNHControlInfo/>
+      </EdifactControlInfo>
+    </EdifactPartnerInfo>
+  </PartnerInfo>
+  <PartnerCommunication/>
+  <DocumentTypes/>
+  <Archiving enableArchiving="false"/>
+</TradingPartner>
+```
+
+## HIPAA Compliance Constraints
+
+These constraints apply to **X12 partners** — HIPAA transactions run on X12 5010, so the rules below extend `PartnerInfo (X12)` configuration and have no bearing on EDIFACT partners.
+
+Partners exchanging HIPAA-covered transactions (837, 835, 834, 270/271, 276/277, 278, 275, 820, 824, 999) must honor these constraints beyond baseline X12:
+
+- **Release 5010 required.** Set `ISAControlInfo.version` to `00501` and `gsVersion` to the full Implementation Convention (see `edi_profile_component.md` § Transaction Set ID Reference). Versions 4010 or 8010 are non-compliant.
+- **NPI qualifier `XX`.** Billing, rendering, and referring provider NM1 segments must use ID qualifier `XX` (National Provider Identifier). Other qualifiers on provider identification are non-compliant.
+- **ICD-10 qualifiers only.** HI-segment diagnosis codes must use `ABK` (principal) / `ABF` (secondary), not legacy `BK` / `BF` (ICD-9 retired October 2015).
+- **999 acknowledgment, not 997.** Set `use999Ack="true"` on the HIPAA partner — 997 responses to HIPAA transactions are a compliance failure.
+- **Secure transport for PHI.** Protected Health Information must move over AS2, SFTP, or HTTPS. Plain FTP or HTTP are non-compliant.
+- **Audit error dispositions.** Documents that fail validation on HIPAA-covered paths must be logged or archived (45 CFR 164.312(b) audit controls). Do not terminate HIPAA error paths in a bare Stop step.
 
 ## PartnerCommunication
 
@@ -495,7 +655,7 @@ Document types associate EDI profiles with the trading partner and configure per
 | Attribute | Type | Purpose |
 |---|---|---|
 | `profileId` | string | EDI profile component ID — platform validates this references a real component |
-| `type` | string | Transaction type code (e.g., `850`, `856`, `810`, `997`) |
+| `type` | string | Transaction/message type code (X12: `850`, `856`, `810`; EDIFACT: `ORDERS`, `INVOIC`, `DESADV`) |
 | `displayName` | string | Optional display name |
 
 Each `DocumentType` must contain a `<Tracking>` child element (even if just `<Tracking><TrackedFields/></Tracking>`) — the API rejects the component without it.
@@ -578,6 +738,9 @@ The API rejects the component if any of these are omitted. They can be empty but
 
 For X12, the required structural chain within PartnerInfo is:
 `X12PartnerInfo` → `X12Options` (can be empty) + `X12ControlInfo` → `ISAControlInfo` (can be empty) + `GSControlInfo` (can be empty)
+
+For EDIFACT, the required structural chain is:
+`EdifactPartnerInfo` → `EdifactOptions` (can be empty) + `EdifactControlInfo` → `UNBControlInfo` (can be empty) + `UNGControlInfo` (can be empty) + `UNHControlInfo` (can be empty). The platform returns `UNGControlInfo` even when `useFunctionalGroups="false"`.
 
 ### Optional Elements
 

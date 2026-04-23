@@ -11,6 +11,8 @@
 - Instance Identifiers
 - Validation Architecture
 - B2B Communication Connectors
+- EDIFACT and X12 Envelope Layers
+- EDIFACT Connector Record API Fields
 
 ## Overview
 
@@ -53,7 +55,7 @@ B2B/EDI Architecture:
 | Standard | Region/Industry | Typical Use Cases |
 |----------|-----------------|-------------------|
 | X12 | North America | Purchase orders (850), invoices (810), shipment notices (856), status (214) |
-| EDIFACT | International | Cross-border trade, UN-developed syntax |
+| EDIFACT | International | Cross-border trade (ORDERS, INVOIC, DESADV), UN-developed syntax. Envelope: UNB/UNZ (interchange) > optional UNG/UNE (group) > UNH/UNT (message) |
 | HL7 | Healthcare | Clinical data exchange, ADT messages |
 | ODETTE | European Automotive | EDIFACT-based, automotive supply chain |
 | Tradacoms | UK Retail | UK retail sector |
@@ -120,7 +122,7 @@ Boomi automatically generates acknowledgments based on trading partner configura
 | X12 | 997 (Functional Acknowledgment) | Default acknowledgment for transaction sets |
 | X12 | 999 (Implementation Acknowledgment) | Healthcare (5010+), more detailed errors |
 | X12 | TA1 (Interchange Acknowledgment) | ISA/IEA level validation |
-| EDIFACT | CONTRL | Interchange-level acknowledgment |
+| EDIFACT | CONTRL | Single acknowledgment type covering syntax and service reporting. Two options: Do Not Acknowledge (`donotackitem`) or Acknowledge (`ackitem`). No granularity equivalent to X12's group-vs-transaction choice |
 | HL7 | ACK | Accept/Application acknowledgments |
 | Tradacoms | None | No acknowledgment mechanism |
 | RosettaNet | Always generated | Standard requires acknowledgments |
@@ -133,6 +135,20 @@ Boomi automatically generates acknowledgments based on trading partner configura
 ### Filter Options
 - Filter Functional Acknowledgements: Prevent 997/TA1 from passing to process
 - Reject Duplicate ISA: Reject documents with duplicate ISA control numbers
+
+### Transaction Pair Dependencies
+
+When scaffolding a process around a received transaction, plan routes for the expected responses:
+
+| Trigger | Expected Responses |
+|---|---|
+| 850 (PO) | 997/999 ack → 855 (acknowledgment) → 856 (ASN) → 810 (invoice) |
+| 830 (planning schedule) | 862 (shipping schedule) → 856 → 810 |
+| 837 (health-care claim) | 999 (implementation ack) → 277CA (claim receipt) → 835 (remittance). 277CA and 835 return as separate inbound interchanges from the payer and require receive-side TP configuration. |
+| 270 (eligibility inquiry) | 271 (eligibility response) |
+| 276 (claim status inquiry) | 277 (claim status response) |
+| 834 (benefit enrollment) | 999 (implementation ack) |
+| EDIFACT ORDERS | CONTRL (syntax ack) → ORDRSP → DESADV → INVOIC |
 
 ## Document Processing Paths
 
@@ -234,3 +250,47 @@ Odette File Transfer Protocol 2:
 
 ### Standard Connectors
 FTP, SFTP, HTTP, and Disk connectors also support B2B scenarios with appropriate configuration.
+
+## EDIFACT and X12 Envelope Layers
+
+| Layer | X12 | EDIFACT | Key Difference |
+|-------|-----|---------|----------------|
+| Interchange | ISA/IEA (mandatory) | UNB/UNZ (mandatory) | Functionally equivalent, different field set |
+| Functional Group | GS/GE (mandatory) | UNG/UNE (**optional**) | EDIFACT messages can sit directly inside UNB/UNZ (`useFunctionalGroups="false"`) |
+| Transaction/Message | ST/SE | UNH/UNT | UNH carries version, release, and controlling agency metadata |
+
+### Transaction-Level Equivalence
+
+Common correspondences when a process bridges X12 and EDIFACT partners:
+
+| X12 | EDIFACT | Purpose |
+|---|---|---|
+| 850 | ORDERS | Purchase order |
+| 855 | ORDRSP | Purchase order response |
+| 856 | DESADV | Despatch advice / ASN |
+| 810 | INVOIC | Invoice |
+| 820 | REMADV | Remittance advice |
+| 832 | PRICAT | Price / sales catalog |
+| 830 | DELFOR | Delivery forecast / schedule |
+| 997 | APERAK | Functional / application acknowledgment |
+| TA1 | CONTRL | Interchange / syntax acknowledgment |
+
+## EDIFACT Connector Record API Fields
+
+The Boomi platform API uses different object types and field names for EDIFACT vs X12 document queries. Query endpoint: `POST .../EDIFACTConnectorRecord/query` (vs `.../X12ConnectorRecord/query`).
+
+| EDIFACT Field | X12 Equivalent | Notes |
+|---|---|---|
+| `messageType` | `transactionSet` | Different field name — different query operations required |
+| `messageReferenceNumber` | `stControl` | Message-level control number |
+| `interchangeControlReference` | `isaControl` | Interchange-level control number |
+| `interchangeDate` / `interchangeTime` | *(no ISA-level equivalent)* | X12 API exposes `gsDate`/`gsTime` (group level) but no interchange-level date/time |
+| `version` + `release` | `gsVersion` | EDIFACT splits version into two fields |
+| `controllingAgency` | `agencyCode` | Typically `UN` for EDIFACT |
+| `ackStatus` / `ackReport` | `ackStatus` + `isaAckStatus` | X12 has two ack levels; EDIFACT has one |
+| `senderID` / `receiverID` | `senderID` + `senderIDQualifier` | EDIFACT API response omits qualifier fields |
+| `outboundValidationStatus` / `outboundValidationReport` | *(same names)* | Same fields, same purpose |
+| `customFields/CorrelationID` | `customFields/CorrelationID` | Same — custom tracking field |
+| *(not present)* | `functionalID` | EDIFACT has no functional group concept in API |
+
+**Multi-standard routing pattern**: In processes that handle both X12 and EDIFACT, the API response XML root element differs (`X12ConnectorRecord` vs `EDIFACTConnectorRecord`). A common pattern is to store the raw document in a Dynamic Document Property and regex-match: `^.*EDIFACTConnectorRecord.*$` vs `^.*X12ConnectorRecord.*$` to route to standard-specific subprocesses.

@@ -4,7 +4,6 @@ This guide covers Boomi's core mental models and development philosophy.
 ## Contents
 - Core Mental Models
 - Profile Type Selection: Flat File vs EDI Profile
-- X12 EDI Profile Design Mental Model
 - Dependency-Aware Development
 - Properties as Variables
 - Document Tracking (Account-Level)
@@ -17,6 +16,7 @@ This guide covers Boomi's core mental models and development philosophy.
 - Naming Conventions
 - Development Workflow Principles
 - Critical Deployment Pattern
+- EDI Profile Design Mental Models (X12 and EDIFACT)
 - Platform Services Awareness
 
 ## Core Mental Models
@@ -55,23 +55,6 @@ Flat file profiles cannot express that record B belongs to record A - they produ
 - Nested repeating groups (e.g., shipment → references, location → references)
 - Complex proprietary formats (TMW, mainframe formats)
 - Any format requiring hierarchical record relationships
-
-### 5. X12 EDI Profile Design Mental Model
-
-When building X12 EDI profiles, understand the document structure before defining loops and segments:
-
-**B-Segment Identification**: X12 documents begin with a "B segment" that identifies the document instance. The key identifier element in these segments is what trading partners use to correlate documents:
-- 850 Purchase Order: BEG segment, BEG03 = PO Number
-- 810 Invoice: BIG segment, BIG02 = Invoice Number
-- 856 ASN: BSN segment, BSN02 = Shipment ID
-
-When building Set Properties or Maps, extract the B-segment identifier early -- it is the primary correlation key for the document.
-
-**Qualifier-Grouped Loops**: Several X12 segments repeat with a qualifying element that distinguishes each occurrence. The qualifier element determines how to structure EdiLoop nesting and tagLists.
-
-The N1 loop is the canonical example: N101 (Entity Identifier Code) qualifies the party type (ST=Ship To, BT=Bill To, etc.). N2 (Additional Name), N3 (Address), N4 (City/State/Zip), and REF segments within the loop all belong to that N101 qualifier context. In Boomi, model this as an EdiLoop containing N1, N2, N3, N4 segments -- then use tagLists on the loop with N101 as the identifier element to distinguish Ship To from Bill To instances.
-
-Other common qualifier patterns: REF segments qualified by REF01, DTM segments qualified by DTM01.
 
 ## Dependency-Aware Development
 Components reference other components. Think in dependency chains:
@@ -383,6 +366,22 @@ Key patterns that fail silently without errors:
 **Parent-Subprocess Dependency**: When updating subprocesses, ALWAYS redeploy parent processes to pick up changes. This is the most dangerous deployment gotcha - parent processes snapshot subprocess versions at deployment time.
 
 **Deployment Efficiency**: Parent deployment automatically includes all referenced components - deploy only the parent to update both parent and subprocess.
+
+## EDI Profile Design Mental Models (X12 and EDIFACT)
+
+This section applies for EDI profile work. For segment-level structure and code lists, consult the trading partner's implementation guide / companion document and a sample transaction. For transaction-set routing facts (GS-01 codes, HIPAA GS-08 Implementation Convention references) see `components/edi_profile_component.md` § Transaction Set ID Reference. For the XML mechanics of qualifier-driven routing (tagLists, composite sub-element references, segment-level filters), see `components/edi_profile_component.md`.
+
+### Correlation Keys: Extract Early
+
+Every EDI document carries a primary identifier that trading partners use to correlate conversations (acknowledgments, invoices against an ASN, etc.). The Boomi instinct is to extract this identifier near the top of the process via Set Properties so it travels as a DDP for logging, tracked fields, and routing.
+- **X12** uses a document-specific "B segment": `BEG03` (850 PO#), `BIG02` (810 Invoice#), `BSN02` (856 Shipment ID). Each transaction set has its own B-segment.
+- **EDIFACT** uses the universal **BGM** segment across every message type: `BGM01.1` identifies the document type (UN/EDIFACT code list 1001), `BGM02` carries the reference number.
+
+### Qualifier-Grouped Repeats
+
+Both standards share the same pattern: a segment or loop repeats and a qualifier element on each occurrence identifies which instance it is. X12's N1 loop (qualified by `N101`: ST/BT/etc.) and EDIFACT's NAD segment (qualified by `NAD01`: BY/SU/etc.) are the canonical examples; REF/RFF and DTM follow the same shape. Plan profiles around the qualifier from the start — in Boomi you route instances via `tagLists` keyed on that element rather than by position.
+
+EDIFACT qualifiers often live in composite sub-elements (e.g., `RFF01.1`, `DTM01.1`) rather than standalone elements, and EDIFACT segments use composites pervasively elsewhere too. For that reason EDIFACT work almost always pulls `components/edi_profile_component.md` alongside the partner's companion guide.
 
 ## Platform Services Awareness
 Boomi offers platform services beyond Integration processes (Event Streams, DataHub, Flow, API Management, B2B/EDI, AI agents, MCP Server). These require GUI configuration but integrate with Integration processes.

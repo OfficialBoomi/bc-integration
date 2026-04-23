@@ -46,6 +46,7 @@ A comprehensive guide to Boomi error patterns, silent failures, and issues that 
 | HTTP 500 on concurrent listener requests / listener queuing | #27 (Listener Process Options) |
 | White screen opening SF operation in GUI | #28 (SF Operation Missing Sorts Element) |
 | Push rejected — "locked by another user" | #29 (Component Locking) |
+| Groovy compile error in ProcessLog after clean push/deploy | #30 (Groovy Runtime Compilation) |
 
 ---
 
@@ -1683,5 +1684,52 @@ When Component Locking is enabled in a Boomi account and a user holds a lock on 
 ### The Rule
 
 When a push fails with this error, inform the user that the component is locked and must be unlocked in the Boomi GUI. Do not retry — the lock state cannot be changed via API.
+
+---
+
+## Issue #30: Groovy Syntax Errors Deploy Successfully
+
+**Frequency:** Medium
+**Detection:** Runtime error surfaced only in ProcessLog — push and deploy complete cleanly
+
+### The Problem
+
+Groovy scripts inside `<dataprocessscript>` components are compiled by the Atom runtime at first execution, not at push or deploy time. A syntactically invalid script pushes and deploys without errors, then fails at runtime with `CompilationFailedException` (or similar) visible only in the execution log.
+
+**Real-World Symptoms:**
+- Component push returns HTTP 200
+- `boomi-deploy.sh` prints `SUCCESS: Deployed`
+- Process execution fails with a Groovy compile error (unexpected token, unclosed brace, unresolved type, etc.)
+- The error is visible only by inspecting the ProcessLog for the failed execution
+
+### Why It Happens
+
+The platform API validates XML schema at push and deployment metadata at deploy, but the `<script>` body is stored as opaque text. Groovy compilation happens inside the Atom on first execution, via the `language="groovy2"` engine configured on `<dataprocessscript>`. Push-time and deploy-time checks never exercise the Groovy parser, so syntactic issues cannot surface until runtime.
+
+### Wrong Pattern — Treating Deploy Success as Verification
+
+```
+bash <skill-path>/scripts/boomi-component-push.sh processes/your_process.xml   # 200 OK
+bash <skill-path>/scripts/boomi-deploy.sh processes/your_process.xml            # SUCCESS: Deployed
+# — change considered verified, process never executed —
+```
+
+### Correct Pattern — Execute and Inspect the ProcessLog
+
+```
+bash <skill-path>/scripts/boomi-component-push.sh processes/your_process.xml
+bash <skill-path>/scripts/boomi-deploy.sh processes/your_process.xml
+bash <skill-path>/scripts/boomi-test-execute.sh --process-id <guid>
+# inspect ProcessLog for Groovy compile/runtime errors before considering the change verified
+```
+
+### The Rule
+
+After any change to a `<dataprocessscript>` body, execute the process, then verify **both** that the ProcessLog is free of errors **and** that observable outputs (DDPs, routing, document content) match intent. Deploy-clean and error-free execution are not, by themselves, correctness signals for script body changes.
+
+### Related
+
+- `references/steps/data_process_groovy_step.md` — Data Process Groovy step reference
+- Issue #17 documents a sibling "deploy-clean, runtime-fails" pattern for the same step type (missing `language`/`useCache`)
 
 ---

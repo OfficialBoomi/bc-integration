@@ -78,42 +78,11 @@ Parameters pass filter values and input IDs to the operation. Each parameter map
 
 ### CREATE — Write a File
 
-Set directory and filename via Set Properties before the connector step. The document body becomes the file content.
+**Required property:** A Set Properties step must set `connector.disk-sdk.fileName` before the CREATE connector step. Without it, CREATE fails with error `[5]`. The same requirement applies to UPSERT. The document body becomes the file content.
 
-```xml
-<!-- Set Properties step before CREATE -->
-<documentproperty name="Disk v2 - Directory"
-    propertyId="connector.disk-sdk.directory">
-  <sourcevalues>
-    <parametervalue valueType="static">
-      <staticparameter staticproperty="work/output"/>
-    </parametervalue>
-  </sourcevalues>
-</documentproperty>
-<documentproperty name="Disk v2 - File Name"
-    propertyId="connector.disk-sdk.fileName">
-  <sourcevalues>
-    <parametervalue valueType="static">
-      <staticparameter staticproperty="report.csv"/>
-    </parametervalue>
-  </sourcevalues>
-</documentproperty>
+The `connector.disk-sdk.directory` property is optional — when omitted, CREATE falls back to the connection's `directory` field.
 
-<!-- CREATE connector step -->
-<shape image="connectoraction_icon" shapetype="connectoraction"
-       userlabel="Write Report" x="432" y="48">
-  <configuration>
-    <connectoraction actionType="CREATE" connectorType="disk-sdk"
-        connectionId="{connection-id}" operationId="{operation-id}">
-      <parameters/>
-      <dynamicProperties/>
-    </connectoraction>
-  </configuration>
-  <dragpoints>
-    <dragpoint toShape="{next}" x="608" y="56"/>
-  </dragpoints>
-</shape>
-```
+See `set_properties_step.md` for the Set Properties shape structure and full source-value type reference (static, dynamic/`track`, etc.).
 
 ### GET — Read a File by Name
 

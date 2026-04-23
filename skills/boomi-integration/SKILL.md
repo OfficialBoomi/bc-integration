@@ -92,14 +92,15 @@ Default to the local `references/` content — it is curated and verified for th
 │   │   ├── branch_merge_guide.md        # Read when: user explicitly requests branch/merge workflows — branch lifecycle, merge requests, conflict resolution (opt-in, do not use unless directed)
 │   │   ├── branch_merge_api_behavior.md # API-level branch semantics — last resort when CLI tools don't cover an edge case. Use branch_merge_guide.md if at all possible.
 │   │   ├── version_management_guide.md  # Read when: viewing component version history, comparing versions, or rolling back to a prior version
-│   │   └── event_streams_rest_api.md    # REST produce API reference (auth, payloads, limits) — for direct REST integration with Event Streams topics
+│   │   ├── event_streams_rest_api.md    # REST produce API reference (auth, payloads, limits) — for direct REST integration with Event Streams topics
+│   │   └── edi_sap_patterns.md          # Read when: EDI ↔ SAP IDoc integration — IDoc segment hierarchy/cardinality, qualifier-driven routing (DTM/NAD → IDoc fields), composite decomposition, cross-reference table design, Z-segment handling
 │   │
 │   ├── components/              # Component XML reference documentation
 │   │   ├── process_component.md              # Use when: creating/editing process XML - defines shape positioning, dragpoint connections, and canvas structure
 │   │   ├── json_profile_component.md         # Use when: defining JSON document schemas for validation, accessing JSON fields in Maps/Set Properties, consolidating array elements
 │   │   ├── xml_profile_component.md          # Use when: defining XML document schemas with namespaces, accessing XML elements/attributes in Maps/Set Properties
 │   │   ├── flat_file_profile_component.md    # Use when: defining CSV/delimited file schemas, creating placeholder profiles for Map component sources
-│   │   ├── edi_profile_component.md          # Use when: defining EDI document schemas, troubleshooting EDI parsing failures, understanding Boomi-specific EDI configuration
+│   │   ├── edi_profile_component.md          # Use when: defining EDI document schemas, troubleshooting EDI parsing failures, understanding Boomi-specific EDI configuration. Includes Transaction Set ID → GS-01 mapping and HIPAA GS-08 Implementation Convention codes.
 │   │   ├── map_component.md                  # Use when: creating field-to-field transformations between profiles, understanding map generation rules and mapping patterns
 │   │   ├── map_component_functions.md        # Use when: applying transformations within maps - string manipulation, date formatting, conditionals, math, lookups
 │   │   ├── rest_connection_component.md      # connectorType: "officialboomi-X3979C-rest-prod". Use when: creating REST API connections - base URLs, authentication patterns, timeouts, connection pooling
@@ -124,7 +125,7 @@ Default to the local `references/` content — it is curated and verified for th
 │   │   ├── flow_service_component.md     # Use when: wrapping Integration processes as Flow-discoverable services, exposing actions to Boomi Flow
 │   │   ├── mcp_server_connection_component.md  # connectorType: "officialboomi-X3979C-mcp-prod". Use when: creating MCP Server connections - server naming, authentication, conversation starters
 │   │   ├── mcp_server_operation_component.md   # Use when: defining MCP tools - JSON schema for tool parameters, HTML encoding, dynamic operation fields
-│   │   ├── trading_partner_component.md       # Use when: creating B2B/EDI trading partner components - AS2 config, X12 ISA/GS control info, document types, tracked fields, acknowledgments
+│   │   ├── trading_partner_component.md       # Use when: creating B2B/EDI trading partner components - X12 ISA/GS or EDIFACT UNB/UNG/UNH control info, AS2 config, document types, tracked fields, acknowledgments
 │   │   ├── cross_reference_table_component.md # Use when: creating static lookup tables for value translation between systems, using cross reference lookups in maps or parameter values (Set Properties, Message, Notify)
 │   │   ├── process_property_component.md    # Use when: creating typed, reusable process property collections for environment-specific config, reading process property values in Set Properties or Groovy scripts
 │   │   ├── document_cache_component.md      # Use when: creating Document Cache components - defining indexes, keys, profile types for in-memory document caching
@@ -162,7 +163,7 @@ Default to the local `references/` content — it is curated and verified for th
 │   │   └── shape_notes.md       # Canvas annotations visible in GUI. Use when: user explicitly requests adding documentation notes to process shapes
 │   │
 │   └── platform_entities/       # Platform service configuration and management
-│       ├── edi_b2b.md           # B2B/EDI architecture, trading partner concepts, supported standards, acknowledgment flows, validation, communication connectors
+│       ├── edi_b2b.md           # B2B/EDI architecture, trading partner concepts, supported standards, acknowledgment flows, transaction pair dependencies, X12↔EDIFACT equivalence, validation, communication connectors
 │       ├── event_streams.md     # Topics, subscriptions, and GraphQL entity management
 │       ├── boomi_for_sap.md     # Boomi for SAP architecture, scope boundaries, JSON-formatted SAP integration via Core module
 │       ├── flow.md              # Boomi Flow integration: FSS deployment workflow, Flow Service components, multi-platform development (build Integration first, then Flow)

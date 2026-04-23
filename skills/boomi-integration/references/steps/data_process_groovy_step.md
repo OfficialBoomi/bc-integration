@@ -43,7 +43,6 @@ Boomi's Groovy runtime has limitations. Large, complex scripts often encounter u
 3. **Basic Java/Groovy only** — Avoid advanced language features
 4. **No external libraries** — Unless material benefit outweighs complexity (discuss with developer first)
 5. **Readable over clever** — Future maintainers should understand instantly
-6. **Block comments only** — NEVER use `//` comments (XML serialization may strip newlines and break scripts)
 
 ### What to Avoid
 
@@ -150,8 +149,6 @@ for( int i = 0; i < dataContext.getDataCount(); i++ ) {
     dataContext.storeStream(is, props);  /* CRITICAL: Without this, document disappears! */
 }
 ```
-
-**IMPORTANT:** Never use `//` single-line comments in Boomi scripts - see Rule #6 in Critical Rules section.
 
 **Why this pattern:**
 - Boomi processes multiple documents (dataContext.getDataCount())
@@ -374,7 +371,9 @@ ExecutionUtil.setDynamicProcessProperty("DPP_COUNTER", String.valueOf(counter), 
 - `language="groovy2"`: Groovy 2.4 runtime (REQUIRED - without this, runtime fails with "Failed loading script engine null")
 - `useCache="true"`: Enable script compilation caching (REQUIRED for performance)
 
-**Critical:** Both attributes are mandatory. Missing `language` attribute causes cryptic runtime error with no design-time warning. 
+**Critical:** Both attributes are mandatory. Missing `language` attribute causes cryptic runtime error with no design-time warning.
+
+**CDATA is a push-side authoring convenience, not the canonical storage form.** The platform accepts both CDATA-wrapped and entity-escaped `<script>` bodies on push; they are stored identically. On pull, the platform always returns the `<script>` body as entity-escaped plain text (`<` → `&lt;`, `&` → `&amp;`) — the CDATA envelope is stripped regardless of how it was pushed. Tools that pull, edit, and re-push groovy components do not need to re-wrap in CDATA; the pulled form is itself a legal push body.
 
 ## Critical Rules and Gotchas
 
@@ -460,45 +459,6 @@ for( int i = 0; i < dataContext.getDataCount(); i++ ) {
     dataContext.storeStream(is, props);
 }
 ```
-
-### Rule #6: Never Use Single-Line Comments
-**NEVER use `//` single-line comments in Boomi Groovy scripts** - XML serialization may strip or normalize newlines, causing `//` to comment out the rest of your script.
-
-```groovy
-/* WRONG - Single-line comments are dangerous in Boomi */
-for( int i = 0; i < dataContext.getDataCount(); i++ ) {
-    InputStream is = dataContext.getStream(i);
-    Properties props = dataContext.getProperties(i);
-
-    // This comment could break the entire script if newlines are stripped!
-    props.setProperty("document.dynamic.userdefined.DDP_STATUS", "processed");
-
-    dataContext.storeStream(is, props);
-}
-
-/* CORRECT - Use block comments */
-for( int i = 0; i < dataContext.getDataCount(); i++ ) {
-    InputStream is = dataContext.getStream(i);
-    Properties props = dataContext.getProperties(i);
-
-    /* This is safe even if newlines are stripped */
-    props.setProperty("document.dynamic.userdefined.DDP_STATUS", "processed");
-
-    dataContext.storeStream(is, props);
-}
-
-/* BEST - Scripts should be simple enough to not need comments */
-for( int i = 0; i < dataContext.getDataCount(); i++ ) {
-    InputStream is = dataContext.getStream(i);
-    Properties props = dataContext.getProperties(i);
-
-    props.setProperty("document.dynamic.userdefined.DDP_STATUS", "processed");
-
-    dataContext.storeStream(is, props);
-}
-```
-
-**Why this matters:** When Boomi serializes your script to XML (in the `<![CDATA[...]]>` section), the XML processor may normalize whitespace including newlines. If `// comment` becomes `// comment<rest of script>`, everything after the `//` becomes a comment and your script breaks. Block comments `/* */` are safe because they require explicit closing syntax.
 
 ## Common Patterns Reference
 

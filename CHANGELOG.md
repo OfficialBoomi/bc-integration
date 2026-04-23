@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.5.43
+
+- Remove incorrect `//` comment rule from Data Process Groovy step reference; clarify CDATA is a push-side convenience, not canonical storage
+- Add Issue #30 to error reference: Groovy syntax errors deploy cleanly, surface only at runtime
+
+
+## 0.5.42
+
+- Add EDIFACT support across EDI reference docs: profile options, delimiter defaults, composite element patterns, tagList examples, trading partner PartnerInfo (UNB/UNG/UNH control info), envelope comparison, and connector record API fields
+- Fold EDI config-critical facts into existing Boomi-mechanics docs — Transaction Set ID → GS-01 table and HIPAA GS-08 Implementation Convention reference in `edi_profile_component.md`; full UNOA–UNOY syntax identifier list and HIPAA compliance constraints in `trading_partner_component.md`; transaction pair dependencies and X12↔EDIFACT transaction-level equivalence in `platform_entities/edi_b2b.md` (reduces IP exposure vs. reproducing standards content standalone while keeping Boomi-configuration knowledge in place)
+- Add Schema Validation Rules section to `edi_profile_component.md` covering HTTP 400 forbidden attributes (on EdiDelimitedOptions, EdiX12Options, EdiDataElement, EdiLoop, EdiSegment, DataFormat), DataFormat child element requirements, single-segment loop wrapping, HL hierarchy auto-generation pattern, and tagLists universal decision rule
+- Add `references/guides/edi_sap_patterns.md` covering IDoc structure basics, EDI_DC40 control record fields, segment hierarchy and cardinality, Z-segment extension pattern, NAD party qualifier to SAP partner function (standard SD module codes: BY/AG, SE/LF, DP/WE, IV/RE), qualifier-driven routing and composite decomposition patterns, cross-reference table design categories, and validation patterns
+- Reshuffle BOOMI_THINKING.md to move EDI Profile Design mental models (X12 and EDIFACT) out of top-level Core Mental Models into a dedicated section near the end of the file
+- Update SKILL.md tree with `guides/edi_sap_patterns.md` entry and expanded `platform_entities/edi_b2b.md` description covering the new transaction pair and equivalence content
+
+
+## 0.5.41
+
+- Clarify that Disk V2 CREATE and UPSERT both require `connector.disk-sdk.fileName` to be set via a Set Properties step before the connector executes; point readers to `set_properties_step.md` for the shape structure and source-value types
+
+
 ## 0.5.40
 
 - Add developer-offering disclaimer to `skills/boomi-integration/README.md` to match the plugin README
