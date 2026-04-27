@@ -21,6 +21,7 @@ This is the Boomi Process Development Framework - a reusable skill that enables 
 **Common multi-file workflows:**
 - **Adding any step**: BOOMI_THINKING.md + process_component.md + steps/[step].md + dependency component docs
 - **Creating connectors**: connection_component.md + operation_component.md + connector_step.md + BOOMI_THINKING.md
+- **REST API on Advanced atom**: api_service_component.md + web_services_server_start_shape_operation.md + process_component.md + api_conversion_patterns.md
 - **Map transformations**: map_component.md + map_component_functions.md + source/target profile docs
 - **Event Streams**: event_streams_connection + operation + steps + platform_entities/event_streams.md
 - **B2B/EDI Trading Partners**: trading_partner_component.md + trading_partner_steps.md + edi_profile_component.md + platform_entities/edi_b2b.md
@@ -105,6 +106,7 @@ Default to the local `references/` content — it is curated and verified for th
 │   │   ├── map_component_functions.md        # Use when: applying transformations within maps - string manipulation, date formatting, conditionals, math, lookups
 │   │   ├── rest_connection_component.md      # connectorType: "officialboomi-X3979C-rest-prod". Use when: creating REST API connections - base URLs, authentication patterns, timeouts, connection pooling
 │   │   ├── rest_connector_operation_component.md # Use when: defining REST operations - HTTP methods, resource paths, headers, query parameters, request/response profiles
+│   │   ├── http_client_component.md          # connectorType: "http". Use when: working with existing HTTP Client assets, or when the user explicitly requests HTTP Client. Never select HTTP over REST on agent judgment alone
 │   │   ├── databasev2_connection_component.md    # connectorType: "officialboomi-X3979C-dbv2da-prod". Use when: creating database connections - JDBC URLs, drivers, credentials, connection management
 │   │   ├── databasev2_connector_operation_component.md # Use when: defining database operations - SQL queries, dynamic operations, GET/INSERT/UPDATE/DELETE, response profiles
 │   │   ├── event_streams_connection_component.md # connectorType: "officialboomi-X3979C-events-prod". Use when: creating Boomi Event Streams connections - environment tokens, cloud service authentication
@@ -121,6 +123,7 @@ Default to the local `references/` content — it is curated and verified for th
 │   │   ├── mft_connection_component.md         # connectorType: "thru-8SHH0W-thrumf-technology". Use when: creating MFT connections - Thru MFT partner connector credentials
 │   │   ├── mft_connector_operation_component.md # Use when: defining MFT operations - file pickup, drop-off, status updates
 │   │   ├── web_services_server_start_shape_operation.md # connectorType: "wss". Use when: converting process to API, creating HTTP listener endpoints, defining request/response profiles for Boomi processes to be exposed as web services/ API end points
+│   │   ├── api_service_component.md          # type: "webservice". Use when: deploying REST APIs to Advanced atoms (wraps WSS Listen processes under a curated URL tree; REST only)
 │   │   ├── fss_operation_component.md    # connectorType: "fss". Use when: creating Flow Services Server operations for Flow-callable Integration processes
 │   │   ├── flow_service_component.md     # Use when: wrapping Integration processes as Flow-discoverable services, exposing actions to Boomi Flow
 │   │   ├── mcp_server_connection_component.md  # connectorType: "officialboomi-X3979C-mcp-prod". Use when: creating MCP Server connections - server naming, authentication, conversation starters
@@ -133,7 +136,7 @@ Default to the local `references/` content — it is curated and verified for th
 │   │
 │   ├── steps/                   # Process step XML reference documentation
 │   │   ├── start_step.md        # Process entry points. Use when configuring new process canvases - includes scheduled, manual, and listener API processes
-│   │   ├── rest_connector_step.md    # REST API calls. Use when: calling external HTTP/REST APIs
+│   │   ├── rest_connector_step.md    # REST API calls. Use when: calling external HTTP/REST APIs (for `connectorType="http"`: see components/http_client_component.md)
 │   │   ├── databasev2_connector_step.md # Database operations. Use when: querying/updating databases, executing SQL, working with relational data
 │   │   ├── salesforce_connector_step.md # Salesforce operations (requires GUI setup). Use when: querying/updating Salesforce objects, working with CRM data
 │   │   ├── boomi_for_sap_step.md    # Boomi for SAP operations. Use when: querying Core-exposed SAP objects with JSON responses, runtime parameter binding for SAP filters
@@ -178,6 +181,7 @@ Default to the local `references/` content — it is curated and verified for th
     ├── boomi-deploy.sh          # Deploy components to runtime environment
     ├── boomi-test-execute.sh    # Trigger process execution via platform API
     ├── boomi-wss-test.sh        # Test WSS listener endpoints via shared web server
+    ├── boomi-shared-server-info.sh # Fetch atom apiType, url, minAuth — run before authoring any listener
     ├── boomi-execution-query.sh # Query execution records and download logs for any process type
     ├── boomi-profile-inspect.py # Extract field metadata from large profiles (Python stdlib only)
     ├── boomi-undeploy.sh        # Remove deployments from runtime environment
@@ -363,9 +367,10 @@ Required for building and testing. Full setup in `references/guides/user_onboard
 
 ### Web Services Listener Pattern
 Complete guidance in `references/guides/api_conversion_patterns.md`. Quick decisions:
+- **Before building any listener or API**: run `bash <skill-path>/scripts/boomi-shared-server-info.sh $BOOMI_TEST_ATOM_ID` and route by `apiType` — `basic`/`intermediate` → bare WSS listener; `advanced` → API Service Component
 - Converting existing process to API? → Wrap it
 - Building new API endpoint? → Wrapper + subprocess pattern
-- Deployment issues? → Check atom type compatibility
+- Deployment issues? → Check atom API tier compatibility
 
 ### Iterative Development Workflow
 

@@ -159,7 +159,7 @@ See `cli_tool_reference.md` § Credential Management for encryption behavior and
 
 
 ### REST Connector Specifics
-**CRITICAL**: Modern REST connector has fundamentally different architecture from the deprecated HTTP client.
+**CRITICAL**: The REST connector has a fundamentally different architecture from the older HTTP Client connector. Prefer REST for new work; for editing existing `connectorType="http"` components, see `components/http_client_component.md`.
 
 **Dual Configuration Pattern**: Operation component defines parameter "slots", process step fills them with runtime values.
 
@@ -171,7 +171,7 @@ REST CONNECTOR:
 └── Process Step: Dynamic runtime values via <dynamicProperties>
 ```
 
-**Why this matters**: Legacy HTTP client supported `{DDP_VAR}` syntax in operation configuration. Modern REST connector does NOT - dynamic values must be configured via process step `<dynamicProperties>` element.
+**Why this matters**: HTTP Client and REST bind dynamic values through different mechanisms. HTTP Client uses `isVariable="true"` on headers and path elements (the GUI "replacement variable" feature), resolved from DDPs of matching name set upstream. REST requires the process step's `<dynamicProperties>` element. Patterns do not port between them.
 
 **Critical Silent Failure - Profile Type Attributes:**
 - NEVER use `requestProfileType` or `responseProfileType` attributes in REST connector operations

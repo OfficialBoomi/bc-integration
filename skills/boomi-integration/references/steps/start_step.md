@@ -149,7 +149,7 @@ B2B/EDI processes use a Trading Partner Start shape with `<tradingpartneraction 
 - Operation defines the API endpoint path, HTTP method, request/response profiles
 - Referenced by GUID in the operationId attribute
 
-**Listener Path**: For standalone WSS processes (not wrapped in API Service component), the endpoint URL is `/ws/simple/{operationType}{ObjectName}` derived from the WSS Operation component. Multiple deployed processes on the same path cause unpredictable routing - requests may hit stale versions. **Use unique, project-specific objectName values** (e.g., `productsMySpecificProject` or `products22Jan2026` instead of just `products`). See `references/guides/boomi_error_reference.md` Issue #19 for diagnostics if collision suspected.
+**Listener Path**: For standalone WSS processes (not wrapped in API Service Component), the endpoint URL is `/ws/simple/{operationType}{ObjectName}` derived from the WSS Operation component. Multiple deployed processes on the same path cause unpredictable routing - requests may hit stale versions. **Use unique, project-specific objectName values** (e.g., `productsMySpecificProject` or `products22Jan2026` instead of just `products`). See `references/guides/boomi_error_reference.md` Issue #19 for diagnostics if collision suspected.
 
 ## Testing Considerations
 

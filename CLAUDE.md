@@ -59,6 +59,10 @@ PRs do NOT edit `plugin.json` or `CHANGELOG.md` directly. Instead:
 - Agents: yaml/md definitions for specialized tasks, auto-invoked by context
 - CLAUDE.local.md adds an additional layer of personalization outside the version control of the main plugin. E.g. a developer might use it to point Claude to local reference assets specific to their machine.
 
+## Terminology
+
+Say **runtime** in prose; keep **atom** only in literal platform identifiers (`Atom`, `{atomId}`, `Atom.type`, the `ATOM` enum). The API/XML surface still says "atom" verbatim — don't invent `Runtime/{id}`. Prefer "at request time" or "at deploy time" over "at runtime" to avoid colliding with the noun.
+
 ## Skill Repos
 
 Skills (e.g. `skills/boomi-integration/`) live in this plugin repo as the source of truth. On push to main, the CI pipeline mirrors each skill out to its own standalone repo (via rsync) so the skill can also be consumed independently. There is no nested `.git` — just one repo tracking everything.

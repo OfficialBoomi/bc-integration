@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.5.45
+
+- Add HTTP Client awareness reference (`boomi-integration/references/components/http_client_component.md`) so the agent can safely work with existing HTTP Client connections, operations, and steps it encounters in customer environments
+- `BOOMI_THINKING.md` continues to direct new work to the modern REST client; edits to existing `connectorType="http"` components now route through the new reference
+
+
+## 0.5.44
+
+- Add API Service Component (REST) reference covering component structure, per-route override inheritance, URL path construction, profile-override key correlation, and required placeholder elements for unused API shapes — the Integration-native deployable that wraps WSS Listen processes for Advanced-runtime deployment
+- Add `boomi-shared-server-info.sh` preflight script that reports a runtime's `apiType`, `url`, and `minAuth` — run before authoring any listener to route `basic`/`intermediate` → bare WSS vs. `advanced` → API Service Component
+- Document the silent-404 failure mode when listener pattern does not match runtime API tier: deployment succeeds but every route returns HTTP 404 at request time. Deploy API does not surface the mismatch
+- Document that packaging/deploying an API Service Component does not cascade to the processes it references — both the component and each linked Listen process must be independently deployed to the target runtime, or routes 404 at request time
+- Document URL path collision behavior: two API Service Components with the same effective URL on the same runtime both deploy `active=true`, but only the first-deployed serves. Shadowed routes are not registered at runtime; reclaiming the slot requires a fresh redeploy of the loser after undeploying the winner
+- Clarify URL case-sensitivity split: bare `/ws/simple/` URLs sentence-case `objectName`; API Service Component routes are case-sensitive and verbatim
+- Correct API management scope: the API Service Component itself is in-scope for this skill; gateway-level policies (rate limiting, subscription plans, developer portal, API Proxy) remain out-of-scope
+
+
 ## 0.5.43
 
 - Remove incorrect `//` comment rule from Data Process Groovy step reference; clarify CDATA is a push-side convenience, not canonical storage

@@ -8,7 +8,8 @@
 - Integration processes with e.g. connectors, Maps, Set Properties, Message steps
 - Process components (profiles, connections, operations)
 - Document flow and transformation logic
-- Web Services Server listeners
+- Web Services Server listeners (bare, for Basic and Intermediate runtimes)
+- API Service Components (REST) — the Integration-native deployable that wraps WSS Listen processes for Advanced-runtime deployment. REST only; the SOAP and OData shapes of the same component type are supported by the platform but out of scope for this skill. See `references/components/api_service_component.md`.
 - Subprocesses and modular design patterns
 - Event Streams: Topics, subscriptions, environment tokens via GraphQL API; connection/operation components and connector steps via Integration XML
 
@@ -26,10 +27,10 @@
 Boomi offers three API management solutions addressing different needs:
 
 #### Boomi API Gateway (Original)
-**What it does**: Native API gateway for exposing Integration processes as managed APIs with security, rate limiting, and access control beyond what a simple web services server process can offer.  
-**When to suggest**: Exposing Boomi processes as APIs, API security needs, rate limiting, subscription plans, access to custom inbound HTTP headers within the integration processes.  
-**Integration touchpoint**: Integration processes with WSS start shape are exposed via an API Component.
-**User action**: Configure API proxies and policies in API Gateway GUI, publish Integration processes as managed APIs.
+**What it does**: Native API gateway adding gateway-level policies (rate limiting, subscription plans, developer portal, access control) on top of deployed APIs.
+**When to suggest**: API rate limiting, subscription plans, developer portal, gateway-level security policies beyond what an API Service Component alone provides.
+**Scope note**: The **API Service Component itself** (the deployable that stands up REST listeners on Advanced runtimes) is **in-scope** for this skill — see `references/components/api_service_component.md`. What is **out-of-scope** is the gateway-level policy layer that wraps deployed APIs: rate limiting, subscription plans, developer portal configuration, and API Proxy components.
+**User action**: Configure gateway policies and developer portal in the API Gateway GUI; use the skill to build and deploy the API Service Component itself.
 
 #### Boomi API Control Plane (APIIDA Acquisition)
 **What it does**: Federated API management providing centralized visibility and governance across multiple vendor gateways (Apigee, AWS, Azure, Boomi, Broadcom, Gravitee, Kong, WSO2) without rip-and-replace.  

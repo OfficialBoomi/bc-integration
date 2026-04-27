@@ -154,7 +154,7 @@ A Web Services Server (WSS) operation component defines an endpoint that can rec
 ## URL Path Examples
 Given base URL: `https://myatom.boomi.com`
 
-**CRITICAL CAPITALIZATION GOTCHA**: Boomi automatically capitalizes the first letter of `objectName` (sentence case) in the final URL path.
+**CRITICAL CAPITALIZATION GOTCHA**: Boomi automatically capitalizes the first letter of `objectName` (sentence case) in the final URL path. **This rule applies to bare `/ws/simple/` URLs only.** REST routes served by an API Service Component are case-sensitive and verbatim — see `references/components/api_service_component.md` for the REST routing rules.
 
 ### Basic Web Service Endpoint Naming Convention
 
