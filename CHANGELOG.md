@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.5.49
+
+- Document how Web Services Server listeners expose URL query parameters as `query_*` DPPs, including the read pattern (`valueType="process"` + `<processparameter>`).
+- Call out the silent-failure anti-pattern of reading DPPs via `valueType="track"` (with `mime.X` or `process.X` propertyIds), which returns empty without error.
+
+
+## 0.5.48
+
+- Add `references/platform_entities/shared_web_server.md` documenting the full set of shared-web-server auth types (None, Basic, Client Certificate, Client Certificate Header, Custom, External Provider, Gateway), the per-port multi-mode model, and an empirically-validated description of what `SharedServerInformation` can and can't tell you about a runtime's listener auth (default port only; `auth` is omitted when the value falls outside the `none|basic` enum). Reframes prior assumption that Basic is universally required — Boomi public cloud is Basic-only, but local Runtimes and customer-owned Private Runtime Clouds are not. Establishes the user's `.env` declarations as authoritative; the API surface is supplementary.
+- Replace `boomi-wss-test.sh`'s hard-coded Basic auth with an explicit `.env`-driven model: `SERVER_AUTH_TYPE` (`basic | bearer | none`) declares the scheme, with `SERVER_USERNAME` + `SERVER_TOKEN` for Basic and the new `SERVER_BEARER_TOKEN` for Bearer. Tokens stay in `.env` (and out of the agent's conversation context). Unset `SERVER_AUTH_TYPE` falls back to inference from populated credentials, with hard-fail on ambiguity (both schemes set, or only one of the two Basic vars).
+- `boomi-shared-server-info.sh` now reports `auth` informatively (with an explicit "default port uses cert/custom/gateway/external-provider" line when the field is omitted by the API), annotates `url` and `minAuth` to clarify they describe the default port and the runtime-wide floor respectively, and no longer attempts a `SERVER_AUTH_TYPE`-vs-API cross-check (the API surface is structurally too thin to support reliable validation).
+- Reframe `SERVER_*` references in `SKILL.md`, `README.md`, `template/.env.example`, and `references/guides/user_onboarding_guide.md` around the new auth-type-declaring model.
+
+
+## 0.5.47
+
+- Update README feedback address from solutions@boomi.com to developer-offerings@boomi.com (plugin and boomi-integration skill)
+
+
+## 0.5.46
+
+- Activity logging is now opt-in: the boomi-integration CLI no longer writes `.activity-log/activity.jsonl` unless `BOOMI_COMPANION_LOG_ACTIVITY=1` is set in `.env`.
+- `activity.jsonl` schema: rename `plugin_version` → `skill_version`.
+- `boomi_api` accepts an optional `--out-file <path>` argument so callers can stream the response straight to a file. `boomi-component-pull.sh` and `boomi-execution-query.sh` now route through `boomi_api` instead of calling `boomi_curl` directly.
+
+
 ## 0.5.45
 
 - Add HTTP Client awareness reference (`boomi-integration/references/components/http_client_component.md`) so the agent can safely work with existing HTTP Client connections, operations, and steps it encounters in customer environments

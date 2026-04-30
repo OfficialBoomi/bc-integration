@@ -15,6 +15,7 @@ hook-logs/
 # Temp files
 *.tmp
 *.log
+.activity-log/
 
 # Local
 /reference
