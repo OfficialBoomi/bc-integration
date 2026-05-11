@@ -10,12 +10,10 @@ If you attempt to call into the Boomi platform and get an auth error - stop and 
 If you are asked to build an integration and are not presented that skill in your initial context - alert the user. The skill includes critical information for your project. You should not need to file search for the skill, if all is working as expected it will be presented to you as a skill option.
 
 ## Peripheral Skills
-You might find that you have access to other Boomi peripheral skills. Use these if the user asks you to, or you may offer them.  
-
-If available, `boomi-marketplace` skill allows you to query from a library of assets and template implementations. Discuss with the user before importing assets to an account.
+You might find that you have access to other Boomi peripheral skills. Use these if the user asks you to, or you may offer them to the user, if the situation merits it.  
 
 ## Credentials & .env files
-You will not be able to read `.env` files directly — access is blocked by project settings by default. The CLI tools load credentials internally via `source .env` in bash. Variables expand inside the bash subprocess; you never see the resolved values, even in transcript history.
+You will not be able to read `.env` files directly — access is blocked by project settings by default. The CLI tools load credentials internally via `source .env` in bash. Variables expand inside the bash subprocess.
 
 Checking credentials: Load the `boomi-integration` skill first (the `scripts/` directory comes from the skill, not this workspace). Run `bash scripts/boomi-env-check.sh` to see which variables are SET vs UNSET. Run `bash scripts/boomi-folder-create.sh --test-connection` to verify platform connectivity. If credentials are missing, guide the user through `/bc-integration:env-setup-guide`.
 
@@ -31,7 +29,7 @@ Your context window will be automatically compacted as it approaches its limit, 
 
 After completing a task that involves tool use, provide a quick summary of the work you've done.
 
-If curl returns exit code 35 (SSL handshake failure), alert the user to check Zscaler or corporate vpn before troubleshooting.
+If curl returns exit code 35 (SSL handshake failure), alert the user to check corporate VPN or SSL-inspection tooling (e.g., Zscaler, Netskope, Cisco Umbrella) before troubleshooting.
 
 ## Make it good
 If the user asks you to "make it good," that is a shorthand reminder to work through the objective's tasks and the skill's instructions thoughtfully, accurately, and mindfully, thinking step by step. 

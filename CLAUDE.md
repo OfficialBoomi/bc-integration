@@ -40,17 +40,6 @@ After running `configure-template-workspace`, users can invoke `/freshies` from 
 
 When `configure-template-workspace` is re-run in the template folder the AI merges updates intelligently, to keep their existing preferences while bringing in new updates from the plugin.
 
-## Versioning
-
-PRs do NOT edit `plugin.json` or `CHANGELOG.md` directly. Instead:
-
-1. Add a file to `changes/` named after your branch (e.g. `changes/big-1215-versioning-update.md`). If the branch has a `/`, use what's right of the slash.
-2. Content is the changelog bullets verbatim, with `- ` prefix:
-   ```
-   - Add changelog fragment system to eliminate merge conflicts
-   ```
-3. On merge to main, the CI pipeline assembles fragments into CHANGELOG.md, bumps the patch version in plugin.json, and deletes the consumed fragments.
-
 ## Guidelines
 
 - Keep contents minimal and focused

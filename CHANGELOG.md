@@ -1,5 +1,71 @@
 # Changelog
 
+## 1.0.0
+
+- **1.0.0** Boomi Companion debuts at Boomi World 2026.  Huzzah and rejoice!
+
+
+## 0.6.7
+
+- Final pre-release pass on the boomi-integration BOOMI_THINKING.md for accuracy and readability.
+
+
+## 0.6.6
+
+- Final pre-release pass on the boomi-integration SKILL.md for accuracy and readability.
+
+
+## 0.6.5
+
+- Emphasize in the boomi-integration CLI reference that `boomi-component-search.sh --related-to` cannot be combined with `--folder`, `--name`, or `--type`.
+
+
+## 0.6.4
+
+- `/freshies` no longer initializes a git repo automatically — the generated workspace is just the copied files, and users may add `.git` to their workspace as desired. Note: existing `/freshies` commands are unaltered; re-run `/bc-integration:configure-template-workspace` to apply the updates.
+- Tightened `/bc-integration:configure-template-workspace` setup: Step 2 now uses a clear checklist (load the `boomi-integration` skill, derive the plugin root from its base directory, append `/template`, verify with `ls`) instead of a multi-tier filesystem fallback. More deterministic, easier to follow.
+
+
+## 0.6.3
+
+- Tighten template CLAUDE.md instructions prior to Boomi World full launch. Note: These template updates are not applied automatically to existing template workspaces. Re-run /bc-integration:configure-template-workspace to merge these updates into an existing template workspace if desired.
+
+## 0.6.2
+
+- Reformatted `template/preferred_connections.md` markdown and expanded the example registry entries to demonstrate three distinct usage shapes. Note: existing User Template workspaces will not be auto-updated by this change. Re-run `/bc-integration:configure-template-workspace` to merge the updated `preferred_connections.md` into your User Template.
+
+## 0.6.1
+
+- Add Documentation section to plugin and skill READMEs linking to the Boomi Companion overview on the Boomi Developer Portal
+- Add Related Plugins & Skills section to plugin and skill READMEs to surface sibling plugins and standalone skills in the Boomi Companion ecosystem
+
+
+## 0.6.0
+
+- Minor release: the `active-development/` workspace now uses Boomi component-type identifier folders (`process/`, `profile.json/`, `connector-action/`, etc.) instead of generic plural names. New component types are discovered automatically, but the convention shift affects where the assistant writes new components and how it treats legacy workspaces — significant enough to surface beyond a patch bump.
+- Components now land in `active-development/<component-type>/` folders matching Boomi's platform identifier (e.g. `process/`, `profile.json/`, `connector-action/`). New component types are picked up automatically. The CLI reference adds a UI-label-to-identifier table for the non-obvious cases (Connection → `connector-settings`, Operation → `connector-action`, Map → `transform.map`).
+- Document cache `profileType` enum corrected from the invalid `profile.database` to `profile.db`.
+- SKILL.md notes the `mkdir -p active-development/<component-type>/` step needed before writing a new component from scratch (the pull path handles this automatically).
+- Existing workspaces with the legacy plural folder names (`processes/`, `profiles/`, etc.) keep working as-is. When the assistant sees them, it raises the inconsistency and offers to migrate, rather than either silently extending the legacy layout or unilaterally renaming.
+
+
+## 0.5.52
+
+- Strengthen `<skill-path>` resolution guidance in SKILL.md with an explicit checklist (anchor → verify → reuse the same path on every call) to prevent path-segment drift between script invocations.
+- Apply `<skill-path>` prefix to remaining bare `scripts/` references in `boomi_error_reference.md` and `platform_entities/shared_web_server.md`.
+
+
+## 0.5.51
+
+- Pipeline now supports explicit minor/major version bumps via reserved `changes/_minor.md` and `changes/_major.md` fragments; default behavior remains a patch bump
+
+
+## 0.5.50
+
+- Slim default `template/.claude/settings.json` to a minimum-viable allow-list. Fixes `tools/*` → `scripts/*`, scopes plugin reads to `bc-**`, hoists `outputStyle` to top level.
+- Skill snippets now show `boomi-shared-server-info.sh` without `$BOOMI_TEST_ATOM_ID` (the preferred baseline behavior)— the script already defaults to that var, and the bare form avoids a `simple_expansion` approval prompt in Claude Code.
+- Normalize `componentId=""` for CREATE in five component references (REST + custom-connector connection/operation, MCP connection/operation) so the agent stops reaching for `uuidgen` — the platform mints the GUID on POST.
+
 ## 0.5.49
 
 - Document how Web Services Server listeners expose URL query parameters as `query_*` DPPs, including the read pattern (`valueType="process"` + `<processparameter>`).

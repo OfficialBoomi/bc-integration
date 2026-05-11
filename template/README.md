@@ -25,8 +25,8 @@ Ask Claude to help you find your credentials in the Boomi platform — it will w
 
 **Component Development:**
 - `active-development/` - Working directory for Boomi components and artifacts
-  - Component folders: `processes/`, `profiles/`, `connections/`, `operations/`, `maps/`, `scripts/`, `document-caches/`
-  - `feedback/` - Test execution results and logs
+  - Component subfolders are created on demand using the platform's lowercase component-type identifier (e.g. `process/`, `transform.map/`, `profile.json/`, `connector-action/`).
+  - `feedback/` - Test execution results and logs (created on demand)
   - `.sync-state/` - Platform sync tracking (gitignored)
 
 **Configuration:**
