@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1
+
+- Add Mail (IMAP) connector reference to the `boomi-integration` skill: `mail_imap_connection_component.md` (SMTP outbound + IMAP inbound, Basic Auth and OAuth 2.0 with optional `OAUTH2_SAME_AS_OUTBOUND` inbound reuse), `mail_imap_connector_operation_component.md` (Receive / Send / Move with Document Cache attachment routing, XML request profile for Move, full `connector.mailsdk.*` property catalog), and `mail_imap_connector_step.md` (canvas XML for all three actions plus the Receive-as-start-step listener pattern). All behavioral claims runtime-validated against the Boomi platform.
+- `document_cache_component.md` clarifies that the `DocumentPropertyKeyConfig.propertyId` field accepts connector-namespace properties (e.g. `connector.mailsdk.messageId`), useful for keying attachment caches off auto-tracked connector properties.
+- SKILL.md inventory and common-workflow combinations updated to include the three new Mail (IMAP) reference files.
+
+
 ## 1.0.0
 
 - **1.0.0** Boomi Companion debuts at Boomi World 2026.  Huzzah and rejoice!
