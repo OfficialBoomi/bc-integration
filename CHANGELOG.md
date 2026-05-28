@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.3
+
+- Add `boomi-extensions.sh` for Environment Extensions value management: partial-by-default writes, pre-write snapshots, and more clear requirements for the model.
+- Sharpen the Process Extensions reference.
+
+## 1.0.2
+
+- Boomi Companion now identifies the originating skill in its Boomi Platform API requests and local activity log entries.
+- Document VERSION-file ownership in the plugin and skill `CLAUDE.md`.
+
+
 ## 1.0.1
 
 - Add Mail (IMAP) connector reference to the `boomi-integration` skill: `mail_imap_connection_component.md` (SMTP outbound + IMAP inbound, Basic Auth and OAuth 2.0 with optional `OAUTH2_SAME_AS_OUTBOUND` inbound reuse), `mail_imap_connector_operation_component.md` (Receive / Send / Move with Document Cache attachment routing, XML request profile for Move, full `connector.mailsdk.*` property catalog), and `mail_imap_connector_step.md` (canvas XML for all three actions plus the Receive-as-start-step listener pattern). All behavioral claims runtime-validated against the Boomi platform.
