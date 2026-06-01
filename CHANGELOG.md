@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.4
+
+- Add Flow Control step reference (`flow_control_step.md`) to the `boomi-integration` skill, covering batching, parallel fiber execution, scope-of-effect, document ordering across fibers, and state sharing between fibers and the controlling execution.
+- SKILL.md inventory updated to include `flow_control_step.md`.
+- BOOMI_THINKING.md gains a "Flow Control Steps" subsection under Step Design Principles with point-in-process scope guidance.
+
+
 ## 1.0.3
 
 - Add `boomi-extensions.sh` for Environment Extensions value management: partial-by-default writes, pre-write snapshots, and more clear requirements for the model.
