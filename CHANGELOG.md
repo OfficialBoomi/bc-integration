@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.5
+
+- Strengthen instructions to avoid mapping the output of one function into the input of another
+- Add componentId to map component sample snippets
+
+
 ## 1.0.4
 
 - Add Flow Control step reference (`flow_control_step.md`) to the `boomi-integration` skill, covering batching, parallel fiber execution, scope-of-effect, document ordering across fibers, and state sharing between fibers and the controlling execution.
