@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.0.9
+
+- Document Event Streams dead-letter queue (DLQ)
+
+
+## 1.0.8
+
+- Add Database (Legacy) profile (`profile.db`) coverage to the Document Cache component reference.
+
+
+## 1.0.7
+
+- Add Database (Legacy) connector references: connection, operation, database profile, and step
+
+
+## 1.0.6
+
+- Added support for reusable Map Script components that a map can reference instead of an inline script, and when to use each.
+- Fixed a defect in the component-creation script that could blank a component's reference to another component on create.
+
+
 ## 1.0.5
 
 - Strengthen instructions to avoid mapping the output of one function into the input of another
