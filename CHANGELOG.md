@@ -1,5 +1,60 @@
 # Changelog
 
+## 1.0.19
+
+- Fix `boomi-deploy.sh --list-environments` to list environments via `POST /Environment/query`.
+
+
+## 1.0.18
+
+- Stamp the resolved component ID onto the root element before pushing component updates.
+
+
+
+## 1.0.17
+
+- Fix create/push/deploy failing for components with bracketed names (e.g. `[System] Order Sync`)
+
+
+## 1.0.16
+
+- Fix component create to stamp the assigned componentId onto the root whether its attribute was empty, stale, or absent.
+- Warn instead of reporting success when the componentId cannot be stamped into the local file.
+
+## 1.0.15
+
+- Require xpath on every connection/operation override field; a missing xpath silently inerts the override.
+- Emit the complete canonical ConnectionOverride block from a platform pull rather than a hand-picked subset.
+- Add error-reference Issue #31 (silently-inert override) with a grep detector; fix the inert <field> examples.
+
+
+## 1.0.14
+
+- Component push reports the resulting version number on success.
+- Clarify the no-change skip message: nothing is sent; use `--force` to push anyway.
+- Correct API troubleshooting guide: HTTP 403 is an authorization failure, not deduplication.
+
+
+## 1.0.13
+
+- Stream component create/push bodies from a tempfile to avoid ARG_MAX overflow on large processes
+
+
+## 1.0.12
+
+- Document process options and their effects
+
+
+## 1.0.11
+
+- CLI scripts now exit non-zero on API/operation failures, so callers detect failed pushes, creates, and deploys.
+- `xml_attr` returns empty on no-match instead of aborting under `set -euo pipefail`, so missing-field guards print their diagnostics.
+
+
+## 1.0.10
+
+- Fix REST connector dynamic-property key for custom request headers (`requestHeaders`)
+
 ## 1.0.9
 
 - Document Event Streams dead-letter queue (DLQ)
