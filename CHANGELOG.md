@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.20
+
+- Fix component create/push corrupting XML when the `<?xml ?>` declaration shares a line with the `<bns:Component>` root element.
+
 ## 1.0.19
 
 - Fix `boomi-deploy.sh --list-environments` to list environments via `POST /Environment/query`.
