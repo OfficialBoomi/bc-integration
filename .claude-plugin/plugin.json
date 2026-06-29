@@ -1,7 +1,7 @@
 {
   "name": "bc-integration",
   "description": "Boomi development tools: skills, commands, and agents for building integrations",
-  "version": "1.0.20",
+  "version": "1.0.22",
   "author": {
     "name": "Boomi"
   }

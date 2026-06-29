@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.22
+
+- Document Process Call return-path name matching, silent mismatches, and `returnLabel`
+- Document child→parent DPP propagation across a `wait="true"` Process Call
+
+
+## 1.0.21
+
+- Add support for Process Route
+
 ## 1.0.20
 
 - Fix component create/push corrupting XML when the `<?xml ?>` declaration shares a line with the `<bns:Component>` root element.
