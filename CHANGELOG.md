@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.0.25
+
+- Document the OpenAPI connector connection and operation components
+
+
+## 1.0.24
+
+- Expand Map Function documentation; add coverage for all Lookup functions (Simple, Cross Reference, Document Cache, SQL)
+
+
+## 1.0.23
+
+- Add support for reusable Process Script Components
+
+
 ## 1.0.22
 
 - Document Process Call return-path name matching, silent mismatches, and `returnLabel`
