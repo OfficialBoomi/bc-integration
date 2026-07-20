@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.26
+
+- Corrected http_client_component.md: all five HttpSettings sub-blocks are required on create/update; omitting them breaks the component in the Build UI
+
 ## 1.0.25
 
 - Document the OpenAPI connector connection and operation components
