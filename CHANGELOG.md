@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.0.31
+
+- Corrected flat file profile textQualifier enum values
+
+
+## 1.0.30
+
+- Honor configured target folder unless the user directs otherwise
+
+
+## 1.0.29
+
+- Improve Message step escaping guidance: literal `{}` output and Database V2 empty-input GET pattern
+
+
+## 1.0.28
+
+- Document new map functions: String, Numeric, Connector Call, Properties
+- Document User-Defined Functions (now preferred over scripting for multi-step map logic)
+- Correct REST profile warning; REST operations support request/response profiles
+
+
+## 1.0.27
+
+- Documented Process Call return-path mismatch behind canvas detachment issue
+
+
 ## 1.0.26
 
 - Corrected http_client_component.md: all five HttpSettings sub-blocks are required on create/update; omitting them breaks the component in the Build UI
