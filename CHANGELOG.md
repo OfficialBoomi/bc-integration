@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.0.35
+
+- Note the execution-worker requirement for Event Streams Listen on cloud runtimes, with the Consume fallback
+
+
+## 1.0.34
+
+- Add `components/mail_component.md` — awareness-only reference for the legacy Mail connector (`connectorType="mail"`), routing new work to Mail (IMAP)
+
+
+## 1.0.33
+
+- Expanded and consolidated parameter value type knowledge into a single guide now referenced from Notify, Message, Set Properties, and Exception steps
+
+
+## 1.0.32
+
+- Fix `xml_attr` returning multiple values on XML with nested `componentId` attributes
+
+
 ## 1.0.31
 
 - Corrected flat file profile textQualifier enum values
