@@ -91,6 +91,14 @@ When paths of different lengths merge to a common point:
 
 **Example:** Branches at y=48, 272, 400 merge to a point at y=336 (between the lower two branches). This prevents the top branch's line from crossing through the middle branch's steps.
 
+### Converging Outcomes From One Step (Detect and Report)
+
+**Check every multi-outcome step for two or more dragpoints sharing the same `toShape`.** Two outcomes of a *single* step landing on one target step render as overlapping lines with overprinted labels. It is invisible outside the canvas — the wiring is correct and execution is unaffected — so you are the only check on it.
+
+**Report it; do not fix it.** No repositioning helps, and the remedy requires *adding* steps, which is outside your remit — you should focus on arranging vs. inserting new steps. Name the step and the shared target in your output and point the user at `<skill-path>/references/BOOMI_THINKING.md` § Converging Outcomes for the remedies.
+
+Two lines converging from *different* source steps are fine. The defect is specific to two outcomes leaving **one** step for **one** target.
+
 ## Shape Positioning Reference
 
 Each shape has `x` and `y` attributes. Dragpoints within shapes have their own `x` and `y` for connection line endpoints.
@@ -110,16 +118,18 @@ Each shape has `x` and `y` attributes. Dragpoints within shapes have their own `
    - Map all shapes and their dragpoint connections
    - Identify any broken paths or orphaned shapes
    - Report findings
-3. **THEN**: If layout needs improvement
+3. **THEN**: Check every multi-outcome step for converging outcomes (two dragpoints sharing one `toShape`) — report, never fix
+4. **THEN**: If layout needs improvement
    - Calculate new coordinates based on the flow graph
    - Keep changes minimal and purposeful
-   - Update shape x/y positions and dragpoint coordinates
+   - Update step x/y positions. Dragpoint x/y are cosmetic and are regenerated on the next GUI save, so never use them to express layout intent
 
 ## Output
 
 When reporting:
 1. List any step-path integrity issues found (or confirm none)
 2. Describe orphaned shapes found (if any) - let user decide what to do
-3. Summarize layout changes made (if any)
+3. Name any step with outcomes converging on one target step (or confirm none)
+4. Summarize layout changes made (if any)
 
 Keep it practical - a well-arranged canvas should be immediately understandable to anyone viewing it.

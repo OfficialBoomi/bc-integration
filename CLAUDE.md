@@ -56,6 +56,6 @@ Say **runtime** in prose; keep **atom** only in literal platform identifiers (`A
 
 Skills (e.g. `skills/boomi-integration/`) live in this plugin repo as the source of truth. On push to main, the CI pipeline mirrors each skill out to its own standalone repo (via rsync) so the skill can also be consumed independently. There is no nested `.git` — just one repo tracking everything.
 
-## Skill VERSION files
+## CI-written skill files
 
-Versioning is performed by Boomi CI/CD pipelines and is tracked in the VERSION file for each skill (e.g. `skills/boomi-integration/VERSION`). Agents MUST NOT modify `VERSION` files.
+Each skill directory carries two files the pipeline writes on merge to `main`: `VERSION` (the plugin version) and `CHANGELOG.md` (a copy of the plugin root's changelog), e.g. `skills/boomi-integration/VERSION`. Agents MUST NOT modify either — edit `changes/` fragments instead.
