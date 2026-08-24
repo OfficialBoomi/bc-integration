@@ -32,6 +32,10 @@ __pycache__/
 .githooks
 
 CLAUDE.local.md
+AGENTS.md
+AGENTS.override.md
+.agents/
+.codex/
 
 /launch-content
 /.feature-analysis-projects
