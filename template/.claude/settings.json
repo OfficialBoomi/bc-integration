@@ -11,6 +11,5 @@
       "Read(**/.env*)",
       "Bash(*.env*)"
     ]
-  },
-  "outputStyle": "Explanatory"
+  }
 }
