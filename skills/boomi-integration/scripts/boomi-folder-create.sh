@@ -3,6 +3,31 @@
 # Usage: bash scripts/boomi-folder-create.sh <folder_name> [--parent-folder-id ID] [--test-connection]
 
 source "$(dirname "$0")/boomi-common.sh"
+
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  bash scripts/boomi-folder-create.sh <folder_name> [--parent-folder-id ID]
+  bash scripts/boomi-folder-create.sh --test-connection
+
+Arguments:
+  <folder_name>            Name of the folder to create.
+
+Options:
+  --parent-folder-id <ID>  Parent folder ID. Defaults to BOOMI_TARGET_FOLDER.
+                           If creation under this parent fails, retries once
+                           in the account root.
+  --test-connection        Verify platform credentials and exit.
+  -h, --help               Show this help and exit.
+
+Side effects: creates a folder on the platform.
+EOF
+}
+
+# Answer --help and a bare invocation before load_env, which needs a workspace .env.
+[[ $# -eq 0 ]] && { usage; exit 1; }
+if wants_help "--parent-folder-id" "$@"; then usage; exit 0; fi
+
 load_env
 require_env BOOMI_API_URL BOOMI_USERNAME BOOMI_API_TOKEN BOOMI_ACCOUNT_ID
 require_tools curl jq
@@ -16,7 +41,8 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --parent-folder-id) PARENT_ID="$2"; shift 2 ;;
     --test-connection)  TEST_CONN=true; shift ;;
-    -*)                 echo "Unknown option: $1" >&2; exit 1 ;;
+    -h|--help)          usage; exit 0 ;;
+    -*)                 echo "Unknown option: $1" >&2; usage; exit 1 ;;
     *)                  FOLDER_NAME="$1"; shift ;;
   esac
 done
@@ -27,7 +53,7 @@ if $TEST_CONN; then
 fi
 
 if [[ -z "$FOLDER_NAME" ]]; then
-  echo "Usage: bash scripts/boomi-folder-create.sh <folder_name> [--parent-folder-id ID]" >&2
+  usage
   exit 1
 fi
 

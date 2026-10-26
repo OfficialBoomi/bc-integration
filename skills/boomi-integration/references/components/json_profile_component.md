@@ -121,6 +121,8 @@ Raw JSON → Normalized JSON → Boomi XML Profile
 </JSONObjectEntry>
 ```
 
+**Mandatory entries:** set `required="true"` on `<JSONObjectEntry>`. `<JSONObjectEntry>` does not take `minOccurs`/`maxOccurs`.
+
 **Key Rules:**
 - Unique across entire profile, sequential from 1
 - Don't restart numbering in nested structures

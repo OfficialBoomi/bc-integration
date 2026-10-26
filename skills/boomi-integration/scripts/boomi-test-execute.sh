@@ -3,6 +3,33 @@
 # Usage: bash scripts/boomi-test-execute.sh --process-id <ID> [--test-data FILE] [--no-wait]
 
 source "$(dirname "$0")/boomi-common.sh"
+
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  bash scripts/boomi-test-execute.sh --process-id <ID> [--test-data FILE] [--no-wait]
+
+Executes a Boomi process test on $BOOMI_TEST_ATOM_ID and polls for results.
+
+Required:
+  --process-id <ID>   Process to execute.
+
+Options:
+  --test-data <FILE>  Local file sent as test input (content type inferred
+                       from extension: json, xml, csv, else text/plain).
+  --no-wait           Submit and return immediately instead of polling.
+  -h, --help          Show this help and exit.
+
+Side effects: starts a process execution. By default, polls until completion
+(up to 10 minutes) and saves the result under
+active-development/feedback/execution-results/.
+EOF
+}
+
+# Answer --help and a bare invocation before load_env, which needs a workspace .env.
+[[ $# -eq 0 ]] && { usage; exit 1; }
+if wants_help "--process-id --test-data" "$@"; then usage; exit 0; fi
+
 load_env
 require_env BOOMI_API_URL BOOMI_USERNAME BOOMI_API_TOKEN BOOMI_ACCOUNT_ID
 require_tools curl jq
@@ -17,13 +44,14 @@ while [[ $# -gt 0 ]]; do
     --process-id) PROCESS_ID="$2"; shift 2 ;;
     --test-data)  TEST_DATA="$2"; shift 2 ;;
     --no-wait)    NO_WAIT=true; shift ;;
-    -*)           echo "Unknown option: $1" >&2; exit 1 ;;
-    *)            echo "Unexpected argument: $1" >&2; exit 1 ;;
+    -h|--help)    usage; exit 0 ;;
+    -*)           echo "Unknown option: $1" >&2; usage; exit 1 ;;
+    *)            echo "Unexpected argument: $1" >&2; usage; exit 1 ;;
   esac
 done
 
 if [[ -z "$PROCESS_ID" ]]; then
-  echo "Usage: bash scripts/boomi-test-execute.sh --process-id <ID> [--test-data FILE] [--no-wait]" >&2
+  usage
   exit 1
 fi
 

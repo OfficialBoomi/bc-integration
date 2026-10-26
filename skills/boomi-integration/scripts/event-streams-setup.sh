@@ -1,14 +1,37 @@
 #!/usr/bin/env bash
-# Event Streams setup: topics, subscriptions, and tokens via GraphQL
-# Usage: bash scripts/event-streams-setup.sh <command> [args]
-#   Commands: query-tokens, create-token <name> [consume] [produce], provision-connection <name> <token-name> <folder-id>,
-#             create-topic <name>, create-subscription <topic> <name>, list-topics,
-#             query-topic <name>, rest-produce <topic> <payload> [token-name]
+# Event Streams setup: topics, subscriptions, and tokens via GraphQL. See usage() / --help.
 
 # Not safely traceable: graphql() expands a minted JWT; token commands handle raw tokens.
 set +x
 
 source "$(dirname "$0")/boomi-common.sh"
+
+usage() {
+  cat <<'USAGE'
+Usage: bash scripts/event-streams-setup.sh <command> [args]
+Commands:
+  query-tokens                        List environment tokens
+  create-token <name> [consume] [produce]  Create token (permissions default true)
+  provision-connection <name> <token> <folder-id>
+                                       Create connection on platform and pull back encrypted
+  create-topic <name>                  Create topic
+  create-subscription <topic> <name>   Create subscription
+  list-topics                          List all topics
+  query-topic <name>                   Query topic details
+  rest-produce <topic> <payload> [token]  Produce via REST (optional token name)
+
+-h, --help, help    Print this message.
+
+Side effects: create-token, provision-connection, create-topic,
+create-subscription, and rest-produce write to the platform (or produce a
+message). query-tokens, list-topics, and query-topic are read-only.
+USAGE
+}
+
+# Answer --help and a bare invocation before load_env, which needs a workspace .env.
+[[ $# -eq 0 ]] && { usage >&2; exit 1; }
+if wants_help "" "$@" || [[ "${1:-}" == "help" ]]; then usage; exit 0; fi
+
 load_env
 require_env BOOMI_API_URL BOOMI_USERNAME BOOMI_API_TOKEN BOOMI_ACCOUNT_ID BOOMI_ENVIRONMENT_ID
 require_tools curl jq
@@ -251,17 +274,8 @@ case "$command" in
     [[ -z "${2:-}" || -z "${3:-}" ]] && { echo "Usage: rest-produce <topic> <payload> [token-name]" >&2; exit 1; }
     rest_produce "$2" "$3" "${4:-}" || rc=$? ;;
   *)
-    echo "Usage: bash scripts/event-streams-setup.sh <command> [args]"
-    echo "Commands:"
-    echo "  query-tokens                        List environment tokens"
-    echo "  create-token <name> [consume] [produce]  Create token (permissions default true)"
-    echo "  provision-connection <name> <token> <folder-id>"
-    echo "                                       Create connection on platform and pull back encrypted"
-    echo "  create-topic <name>                  Create topic"
-    echo "  create-subscription <topic> <name>   Create subscription"
-    echo "  list-topics                          List all topics"
-    echo "  query-topic <name>                   Query topic details"
-    echo "  rest-produce <topic> <payload> [token]  Produce via REST (optional token name)"
+    echo "Unknown command: ${command}" >&2
+    usage >&2
     exit 1 ;;
 esac
 

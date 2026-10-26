@@ -41,8 +41,9 @@ This is a distributable skill that provides AI coding agents with knowledge and 
 ## Prerequisites
 
 - `curl` (universally available)
-- `jq` (install via `brew install jq` on macOS or `apt install jq` on Linux)
+- `jq` (install via `brew install jq` on macOS, `apt install jq` on Linux, or `winget install jqlang.jq` on Windows)
 - Python 3 (only for `boomi-profile-inspect.py` — stdlib only, no pip deps)
+- Windows: the scripts require a bash shell — use Git Bash or WSL (not `cmd.exe` or PowerShell)
 
 ## Installation
 
@@ -104,6 +105,11 @@ SERVER_USERNAME=your_runtime_username
 SERVER_TOKEN=your_runtime_token
 SERVER_BEARER_TOKEN=
 SERVER_VERIFY_SSL=false
+
+# Partner / Sub-Account (optional — uncomment if managing a sub-account)
+# BOOMI_ACCOUNT_ID above must be the parent partner account; API token must come from it.
+# PARTNER_OVERRIDE=true
+# PARTNER_SUB_ACCOUNT=sub_account_id
 ```
 
 **Where to find these:**

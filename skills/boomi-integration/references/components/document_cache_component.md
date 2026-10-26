@@ -47,7 +47,7 @@ The Document Cache component (`type="documentcache"`) defines the structure for 
 |-----------|----------|-------------|
 | `profileType` | Yes | **Must always be set.** Values: `profile.json`, `profile.xml`, `profile.flatfile`, `profile.db`, `profile.edi`, `profile.none`. Omitting this attribute entirely causes a runtime crash (`DataParserException: component null does not exist`). Use `profile.none` for format-agnostic caching (accepts any document format). |
 | `profile` | When not `profile.none` | GUID of the profile component. Required for all profile types except `profile.none`. With `profile.none`, omit this attribute — no profile component is needed. |
-| `enforceSingleLucene` | No | When `true` (GUI default), each document produces at most one index entry. Enables "retrieve all documents" and "remove by index name" operations. XSD default is `false` but platform GUI defaults to `true`. |
+| `enforceSingleLucene` | No | When `true`, each document produces at most one index entry. Enables "retrieve all documents" and "remove by index name" operations. Omitted, it defaults to `false`. |
 
 ## CacheIndex Attributes
 
@@ -80,7 +80,7 @@ Keys use `xsi:type` for polymorphism. Three types:
 | `propertyName` | Property display name |
 | `defaultValue` | Default if property missing |
 
-**UserDefKeyConfig** (`keyType="userdef"`) — **NOT supported at runtime**. The XSD and GUI allow creating this key type, but Add to Cache rejects it with `Error building LoadCacheConfig. UserDefined CacheKeyType not supported`. Do not use.
+**UserDefKeyConfig** (`keyType="userdef"`) — **Not supported**. The component accepts this key type, but Add to Cache rejects it with `Error building LoadCacheConfig. UserDefined CacheKeyType not supported`. Do not use.
 
 ## Requirements
 - At least one index with at least one key
@@ -103,15 +103,18 @@ When using Document Cache with Map components, two approaches exist with differe
 **DocumentCacheLookup function** (configured per-field in the map):
 - Requires a profile-based cache — `profile.none` caches produce no output (silent, no error)
 - Must return exactly one cached document — multiple matches error: `Found more than 1 document in the document cache (index: [name], keys: [key = value])`
-- For within-document arrays, returns only the first element
+- For within-document arrays, returns only the first element — to access every element, use a join or split the document before caching
 - Use when: single-record lookup by key (e.g., existence check, field enrichment)
 
 **DocumentCacheJoins** (configured at the Map component level, adds cache as source):
-- Produces one output document per matching cached document — handles multiple matches
-- For within-document arrays, also returns only the first element (same limitation)
-- Use when: multiple cached documents may match a key, or when joining cache data as a source profile
-
-Neither approach iterates over repeating elements within a single cached document. To access all elements of an array, split the document before caching.
+- Requires a profile-based cache — a `profile.none` cache fails the execution at startup once a mapping reads from it (`Unable to create data parser, component null does not exist`)
+- One lookup per occurrence of the `srcParentKey` element. Documents in a batch, and records within a document, join independently — provided `srcParentKey` is scoped correctly (`map_component.md` § Document Cache Joins)
+- Handles multiple matches, and the target's shape decides the output: cache fields mapped to non-repeating document-level target fields give one output document per match; mapped into a repeating target element, the matches become occurrences of that element in one document. With no mapping reading from the cache, there is no fan-out
+- A repeating element inside a matched cached document stays paired with that document's own fields — 2 matches × 3 array elements into a non-repeating target gives 6 output documents, none crossed between cached documents
+- No match still outputs the source data for that lookup; cache-mapped target fields are omitted, no error. In a record-level join only the unmatched record loses its cache fields
+- `enforceSingleLucene` does not make keys unique across cached documents — with `true` or `false`, two cached documents sharing a key are both stored and both match
+- Use when: multiple cached documents may match a key, when you need every element of a repeating field in the cached document, or when joining cache data as a source profile
+- XML structure: `map_component.md` § Document Cache Joins
 
 ## Reference XML Examples
 

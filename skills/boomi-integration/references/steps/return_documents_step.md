@@ -48,9 +48,11 @@ Returns documents to the calling context - either a parent process or external c
 - `userlabel`: Should match the label for consistency
 
 ## Multiple Return Documents Steps in One Process
-Legal, and one of the two remedies for outcomes converging on a single terminal (see `BOOMI_THINKING.md` § Converging Outcomes). The documents delivered are the same, in the same order, with the same content.
+Legal outside MCP server processes, and one of the two remedies for outcomes converging on a single terminal (see `BOOMI_THINKING.md` § Converging Outcomes). The documents delivered are the same, in the same order, with the same content.
 
-It does change the **return contract**, because each step declares a return path the process exposes:
+**MCP server processes must use a single Return Documents step.**
+
+Outside MCP server processes, splitting does change the **return contract**, because each step declares a return path the process exposes:
 - **One shared terminal** returns a single store holding all the documents; **one terminal per outcome** returns one store per terminal.
 - **HTTP callers are unaffected.** With `outputType="singledata"`, the web server concatenates every returned document into one response body regardless of how many stores they arrived in, so a listener returns a byte-identical response either way.
 - **A process-call caller is affected.** Splitting one terminal into two changes how many return paths the caller must wire, and a stale `childShapeName` routes zero documents silently. Check for callers before splitting.

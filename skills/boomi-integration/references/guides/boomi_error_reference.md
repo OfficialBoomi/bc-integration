@@ -91,6 +91,9 @@ A comprehensive guide to Boomi error patterns, silent failures, and issues that 
 | A flat file Split Documents step fails at execution after a GUI mode switch | #46 (Flat File Split Misconfiguration) |
 | Rows silently missing from the documents a flat file split produced | #46 (Flat File Split Misconfiguration) |
 | "No data produced from map" on a flat file profile downstream of a split | #46 (Flat File Split Misconfiguration) |
+| `Error attempting to load map definitions from map '<name>'` … `Caused by: java.lang.NullPointerException` at process initialization | #47 (Dangling fromCacheJoinKey) |
+| A Document Cache join outputs more records than the source had, each repeated with different cached values | #48 (Join srcParentKey Above the Record) |
+| Records whose key matches no cached document still carry cache data | #48 (Join srcParentKey Above the Record) |
 
 ---
 
@@ -144,6 +147,8 @@ A comprehensive guide to Boomi error patterns, silent failures, and issues that 
 | 44 | EDI Segments Outside a Root Container Make the Profile Uneditable | High | GUI only - push, deploy and execution all succeed |
 | 45 | Unresolvable `tagLists` `elementKey` Destroys Every Document | Medium | Runtime ERROR - zero documents, error blames the source data |
 | 46 | Flat File Split Documents Misconfiguration | High | Runtime error on a missing link element - silent row loss on headers |
+| 47 | Dangling `fromCacheJoinKey` Fails the Execution With a Bare NPE | Low | Runtime ERROR at initialization - push and deploy both clean, no step runs |
+| 48 | Join `srcParentKey` Above the Record Cross-Pairs Every Record | Medium | Silent - wrong output, COMPLETE with no warning |
 
 ---
 
@@ -2561,5 +2566,50 @@ The error names the map and its source profile. Both are correct; the split upst
 
 - Issue #34 — Split Documents Preserves the Parent Wrapper; same map error after a split, different cause
 - Issue #41 — A Map With No Satisfied Mapping Emits Zero Documents; same map error, general case
+
+---
+
+## Issue #47: Dangling `fromCacheJoinKey` Fails the Execution With a Bare NPE
+
+**Frequency:** Low (maps with a `<DocumentCacheJoins>` block)
+**Detection:** Runtime ERROR during process initialization — push and deploy both succeed, no step runs.
+
+### The Problem
+
+A `<Mapping fromCacheJoinKey="N">` where no `<DocumentCacheJoin>` in the map has `docCacheJoinId="N"`:
+
+```
+Error attempting to load map definitions from map '<map name>', shape <map component id>
+Caused by: java.lang.NullPointerException
+```
+
+The message never names the bad reference, and the "shape" ID is the map component ID.
+
+### The Rule
+
+**Every non-zero `fromCacheJoinKey` must equal a `docCacheJoinId` in the same map.** See `references/components/map_component.md` § Document Cache Joins.
+
+---
+
+## Issue #48: Join `srcParentKey` Above the Record Cross-Pairs Every Record
+
+**Frequency:** Medium (Document Cache joins on a source with repeating records)
+**Detection:** Silent — push, deploy and execution all succeed; the output is valid and the values look plausible.
+
+### The Problem
+
+A `<DocumentCacheJoin>` whose `srcParentKey` is broader than the element that directly contains `srcLinkKey` — the root, an array or list container, a flat file `Record`, or `key="0"` — pairs every matched cached document with every source record. Four records whose keys (`C1`, `C2`, an unmatched `ZZZ`, `C3`) match three cached documents produce twelve output records:
+
+```
+L1/NAME-C1  L2/NAME-C1  L3/NAME-C1  L4/NAME-C1
+L1/NAME-C2  L2/NAME-C2  L3/NAME-C2  L4/NAME-C2
+L1/NAME-C3  L2/NAME-C3  L3/NAME-C3  L4/NAME-C3
+```
+
+Only `L1/NAME-C1`, `L2/NAME-C2` and `L4/NAME-C3` are correct, and `L3`, which matches nothing, appears three times with real cache data. With a single-record source the broader scope gives the correct result, so single-record test data does not reveal the error.
+
+### The Rule
+
+**Set `srcParentKey` to the element that directly contains `srcLinkKey`.** Test joins with at least two source records whose keys match different cached documents. For the per-format element, see `references/components/map_component.md` § Document Cache Joins.
 
 ---

@@ -33,8 +33,8 @@ You will not be able to write credentials into `.env` yourself due to default pr
 - `BOOMI_TARGET_FOLDER` - Folder GUID for component storage (offer to create one after connection works)
 - `BOOMI_ENVIRONMENT_ID` - "Go to Manage → Atom Management, select your environment, the ID is in the URL"
 - `BOOMI_TEST_ATOM_ID` - "In the same Atom Management page, select your runtime — the atom ID is in the URL"
-
-
+- `PARTNER_OVERRIDE` - "Are you managing a sub-account from a parent partner account? Set to `true` if so, otherwise leave unset or skip. Note: `BOOMI_ACCOUNT_ID` must be the parent partner account ID, and the API token must come from it."
+- `PARTNER_SUB_ACCOUNT` - "The sub-account ID to operate on (found in the parent account's Partner Management console). Required when PARTNER_OVERRIDE is true. One sub-account at a time."
 
 4. **Confirm completion**:
    - Run `bash scripts/boomi-folder-create.sh --test-connection` to verify

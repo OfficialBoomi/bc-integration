@@ -5,6 +5,19 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/boomi-common.sh"
 
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  bash scripts/boomi-env-check.sh
+
+No arguments. Reports which .env variables are SET/UNSET (values are never
+shown) and which required CLI tools (curl, jq, unzip) are installed.
+EOF
+}
+
+# Answer --help before load_env, which needs a workspace .env.
+if wants_help "" "$@"; then usage; exit 0; fi
+
 load_env
 
 echo "=== .env Variable Status ==="

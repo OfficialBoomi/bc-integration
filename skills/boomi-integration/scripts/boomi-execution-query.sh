@@ -6,6 +6,36 @@
 # With no filters, returns the 3 most recent executions across the account.
 
 source "$(dirname "$0")/boomi-common.sh"
+
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  bash scripts/boomi-execution-query.sh [--process-id <ID>] [--status <STATUS>] [--since <ISO8601>] [--limit <N>]
+  bash scripts/boomi-execution-query.sh --execution-id <ID> --logs
+
+Queries Boomi execution records, or downloads the log archive for one
+execution.
+
+Options:
+  --process-id <ID>     Filter to a specific process
+  --status <STATUS>     Filter by execution status
+  --since <ISO8601>     Filter to executions on/after this time (default: 24h ago)
+  --limit <N>           Max rows shown in the summary (default: 3)
+  --execution-id <ID>   Execution to fetch logs for (requires --logs)
+  --logs                Download and print the log archive for --execution-id
+
+With no filters, returns the 3 most recent executions across the account.
+
+Output: query results saved to
+active-development/feedback/execution-results/query_<timestamp>.json; log
+downloads saved to .../logs_<timestamp>_<executionId>.json. --logs requires
+'unzip' to extract the downloaded archive.
+EOF
+}
+
+# Answer --help before load_env, which needs a workspace .env.
+if wants_help "--process-id --execution-id --status --since --limit" "$@"; then usage; exit 0; fi
+
 load_env
 require_env BOOMI_API_URL BOOMI_USERNAME BOOMI_API_TOKEN BOOMI_ACCOUNT_ID
 require_tools curl jq
@@ -26,8 +56,9 @@ while [[ $# -gt 0 ]]; do
     --since)         SINCE="$2"; shift 2 ;;
     --limit)         LIMIT="$2"; shift 2 ;;
     --logs)          FETCH_LOGS=true; shift ;;
-    -*)              echo "Unknown option: $1" >&2; exit 1 ;;
-    *)               echo "Unexpected argument: $1" >&2; exit 1 ;;
+    -h|--help)       usage; exit 0 ;;
+    -*)              echo "Unknown option: $1" >&2; usage; exit 1 ;;
+    *)               echo "Unexpected argument: $1" >&2; usage; exit 1 ;;
   esac
 done
 

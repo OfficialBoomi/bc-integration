@@ -20,6 +20,8 @@ Cross reference tables are static, in-memory lookup tables for value translation
 
 **Table edits reach a deployed process only when that process is redeployed** — its package keeps the revision it was deployed with. To change values without a redeploy, override the rows through Environment Extensions; see `process_extensions.md`.
 
+**Never store credentials in a CRT.** Row values and their environment overrides are plain text, with no encryption or masking; keep secrets in connection credential fields.
+
 ## Component Structure
 
 ```xml

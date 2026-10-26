@@ -1,8 +1,30 @@
 #!/usr/bin/env bash
-# Compare two versions of a component via ComponentDiffRequest
-# Usage: bash scripts/boomi-component-diff.sh --component-id <ID> --source <N> --target <N>
+# Compare two versions of a component via ComponentDiffRequest. See usage() / --help.
 
 source "$(dirname "$0")/boomi-common.sh"
+
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  bash scripts/boomi-component-diff.sh --component-id <ID> --source <N> --target <N>
+
+Compares two versions of a component via ComponentDiffRequest.
+
+Required:
+  --component-id <ID>    Component ID (a tilde branch suffix is stripped)
+  --source <N>            Source version number
+  --target <N>            Target version number
+
+Output: raw JSON diff response to stdout. A diff can report changed values
+verbatim (e.g. a connector password), so response handling runs with shell
+tracing disabled.
+EOF
+}
+
+# Answer --help and a bare invocation before load_env, which needs a workspace .env.
+[[ $# -eq 0 ]] && { usage; exit 1; }
+if wants_help "--component-id --source --target" "$@"; then usage; exit 0; fi
+
 load_env
 require_env BOOMI_API_URL BOOMI_USERNAME BOOMI_API_TOKEN BOOMI_ACCOUNT_ID
 require_tools curl jq
@@ -17,13 +39,14 @@ while [[ $# -gt 0 ]]; do
     --component-id) COMPONENT_ID="$2"; shift 2 ;;
     --source)       SOURCE_VERSION="$2"; shift 2 ;;
     --target)       TARGET_VERSION="$2"; shift 2 ;;
-    -*)             echo "Unknown option: $1" >&2; exit 1 ;;
-    *)              echo "Unexpected argument: $1" >&2; exit 1 ;;
+    -h|--help)      usage; exit 0 ;;
+    -*)             echo "Unknown option: $1" >&2; usage; exit 1 ;;
+    *)              echo "Unexpected argument: $1" >&2; usage; exit 1 ;;
   esac
 done
 
 if [[ -z "$COMPONENT_ID" || -z "$SOURCE_VERSION" || -z "$TARGET_VERSION" ]]; then
-  echo "Usage: bash scripts/boomi-component-diff.sh --component-id <ID> --source <N> --target <N>" >&2
+  usage
   exit 1
 fi
 

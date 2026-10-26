@@ -18,6 +18,8 @@
    - **SERVER_BEARER_TOKEN** *(if AUTH_TYPE=bearer)*: "Bearer token sent as `Authorization: Bearer …` to the listener port."
    - **SERVER_VERIFY_SSL**: "Verify SSL for the shared web server? (false for self-signed, true for production — usually true)"
    - **BOOMI_DEFAULT_BRANCH_ID**: "If you use Branch & Merge, what's your default working branch ID? (Find via Branch Management in the Boomi GUI, or 'skip')"
+   - **PARTNER_OVERRIDE**: "Are you managing a sub-account from a parent partner account? Set to `true` (together with `PARTNER_SUB_ACCOUNT`) to route all API calls through the Partner API. `BOOMI_ACCOUNT_ID` must be the parent partner account ID, and the API token must come from it. Say 'skip' if you're working directly on your own account."
+   - **PARTNER_SUB_ACCOUNT** *(if PARTNER_OVERRIDE=true)*: "The sub-account ID to operate on. Find this in the parent account's Partner Management console. All API calls will target this sub-account while using the parent account's credentials. One sub-account at a time — change this value to switch."
 
 2. **User creates .env file**:
    - Direct the user to copy `.env.example` to `.env` and paste their values in via a text editor or IDE
@@ -31,7 +33,8 @@
 
 4. **Check prerequisites**:
    - Verify `curl` and `jq` are available: `curl --version && jq --version`
-   - If `jq` is missing: `brew install jq` (macOS) or `apt install jq` (Linux)
+   - If `jq` is missing: `brew install jq` (macOS), `apt install jq` (Linux), or `winget install jqlang.jq` (Windows)
+   - On Windows, the scripts require a bash shell — use Git Bash or WSL (not `cmd.exe` or PowerShell)
 
 5. **Test connection**:
    - Run: `bash <skill-path>/scripts/boomi-component-push.sh --test-connection`

@@ -1,24 +1,45 @@
 #!/usr/bin/env bash
-# Test a WSS listener endpoint via the shared web server.
-#
-# Auth selection from .env:
-#   SERVER_AUTH_TYPE=basic   → requires SERVER_USERNAME + SERVER_TOKEN
-#   SERVER_AUTH_TYPE=bearer  → requires SERVER_BEARER_TOKEN
-#   SERVER_AUTH_TYPE=none    → no auth; any creds set in .env are ignored
-#   SERVER_AUTH_TYPE unset   → inferred from which creds are populated; ambiguity
-#                              (e.g. Basic vars + Bearer both set, or only one of
-#                              SERVER_USERNAME/SERVER_TOKEN) is a hard error.
-#
-# Client Certificate / mTLS and other non-Bearer custom auth schemes are out of
-# scope — fall back to manual curl for those cases. See
-# references/platform_entities/shared_web_server.md.
-#
-# Usage: bash scripts/boomi-wss-test.sh --path /ws/simple/createOrder [--method POST] [--data '{"key":"val"}' | --data file.json] [--content-type application/xml]
+# Test a WSS listener endpoint via the shared web server. See usage() / --help.
 
 # Not safely traceable: auth resolution expands SERVER_TOKEN and SERVER_BEARER_TOKEN.
 set +x
 
 source "$(dirname "$0")/boomi-common.sh"
+
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  bash scripts/boomi-wss-test.sh --path /ws/simple/createOrder [--method POST] [--data '{"key":"val"}' | --data file.json] [--content-type application/xml]
+
+Tests a WSS listener endpoint via the shared web server.
+
+Required:
+  --path <path>           Listener path, e.g. /ws/simple/createOrder
+
+Options:
+  --method <METHOD>       HTTP method (default: POST)
+  --data <string|file>    Request body, inline or a path to a file
+  --content-type <type>   Request Content-Type (default: application/json)
+  -h, --help              Show this help and exit.
+
+Auth selection from .env:
+  SERVER_AUTH_TYPE=basic   -> requires SERVER_USERNAME + SERVER_TOKEN
+  SERVER_AUTH_TYPE=bearer  -> requires SERVER_BEARER_TOKEN
+  SERVER_AUTH_TYPE=none    -> no auth; any creds set in .env are ignored
+  SERVER_AUTH_TYPE unset   -> inferred from which creds are populated; ambiguity
+                              (e.g. Basic vars + Bearer both set, or only one of
+                              SERVER_USERNAME/SERVER_TOKEN) is a hard error.
+
+Client Certificate / mTLS and other non-Bearer custom auth schemes are out of
+scope — fall back to manual curl for those cases. See
+references/platform_entities/shared_web_server.md.
+EOF
+}
+
+# Answer --help and a bare invocation before load_env, which needs a workspace .env.
+[[ $# -eq 0 ]] && { usage; exit 1; }
+if wants_help "--path --data --method --content-type" "$@"; then usage; exit 0; fi
+
 load_env
 require_tools curl
 
@@ -34,13 +55,14 @@ while [[ $# -gt 0 ]]; do
     --data)         DATA="$2"; shift 2 ;;
     --method)       METHOD="$2"; shift 2 ;;
     --content-type) CONTENT_TYPE="$2"; shift 2 ;;
-    -*)       echo "Unknown option: $1" >&2; exit 1 ;;
-    *)        echo "Unknown argument: $1" >&2; exit 1 ;;
+    -h|--help) usage; exit 0 ;;
+    -*)       echo "Unknown option: $1" >&2; usage; exit 1 ;;
+    *)        echo "Unknown argument: $1" >&2; usage; exit 1 ;;
   esac
 done
 
 if [[ -z "$WSS_PATH" ]]; then
-  echo "Usage: bash scripts/boomi-wss-test.sh --path /ws/simple/createOrder [--method POST] [--data '{...}'] [--content-type application/xml]" >&2
+  usage
   exit 1
 fi
 

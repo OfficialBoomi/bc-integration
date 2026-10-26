@@ -214,4 +214,4 @@ MCP Start Step
 
 4. **Execution Mode**: Only `general` workload supported. `low_latency` and `bridge` modes were planned but not delivered as of Jan 2026.
 
-5. **All Paths Converge**: Every operation branch (search, read, create, update, delete) must eventually connect to the same Return Documents shape for consistent response handling.
+5. **Single Return Documents**: The process must end with exactly one Return Documents step. All operation branches must eventually connect to that shared step. For converging outcomes, see `BOOMI_THINKING.md` § Converging Outcomes.

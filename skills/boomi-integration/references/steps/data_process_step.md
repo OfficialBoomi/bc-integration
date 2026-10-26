@@ -5,6 +5,7 @@
 - Configuration Structure
 - Critical Step Name Convention
 - Custom Scripting
+- XSLT Transformation
 - Search/Replace
 - Split Documents
 - Combine Documents
@@ -23,6 +24,7 @@ Data Process steps are the "Swiss army knife" for document manipulation - perfor
 - Base64 encoding/decoding
 - Compressing or decompressing content
 - Custom Groovy scripting for complex logic
+- Applying an XSLT stylesheet to XML documents
 - Search and replace operations
 
 ## Configuration Structure
@@ -44,6 +46,7 @@ Data Process steps are the "Swiss army knife" for document manipulation - perfor
 ## CRITICAL: Step Name Convention
 **ALWAYS use standard operation names in the step `name` attribute**:
 - Process Type 12 → `name="Custom Scripting"`
+- Process Type 16 → `name="XSLT Transformation"`
 - Process Type 1 → `name="Search/Replace"`
 - Process Type 8 → `name="Split Documents"`
 - Process Type 9 → `name="Combine Documents"`
@@ -74,6 +77,10 @@ Inline or component-backed scripting in Groovy (1.5/2.4) or JavaScript. See `ref
 - Default to Groovy 2.4 (`language="groovy2"`); JavaScript (`javascript`) and Groovy 1.5 (`groovy`) are also supported
 - Keep scripts minimal
 - Prefer native Boomi components over complex scripting
+
+## XSLT Transformation (Process Type 16)
+
+Applies an XSLT Stylesheet component (`type="xslt"`) to each XML document. There is no inline form; the step always references a component. See `references/components/xslt_stylesheet_component.md` for the component, the step XML, security settings, and `boomi:get-ddp`/`set-ddp`.
 
 ## Search/Replace (Process Type 1)
 
@@ -368,6 +375,7 @@ The step includes other available operations that we've left out of scope on thi
 | 8 | Split Documents | `<documentsplit>` |
 | 9 | Combine Documents | `<dataprocesscombine>` |
 | 12 | Custom Scripting | `<dataprocessscript>` - See references/steps/data_process_custom_scripting.md |
+| 16 | XSLT Transformation | `<dataprocessxslt>` - See references/components/xslt_stylesheet_component.md |
 
 ## Important Notes
 - Operations execute in index order

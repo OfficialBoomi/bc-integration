@@ -6,6 +6,7 @@
 - Authentication Patterns
   - Password Encryption
   - Keeping the Password Out of the Component (Environment Extensions)
+  - OAuth 2.0
   - Preemptive Authentication
 - Required Fields
 - URL Configuration Notes
@@ -106,6 +107,10 @@ An extension value outranks the component's own. See `references/components/proc
 3. Only then push the connection with `password` set to `value=""`.
 
 Tell the user the connection now authenticates only where the extension is set, so deploying it elsewhere means setting the extension there too.
+
+### OAuth 2.0
+
+OAuth 2.0 connections (any grant type) are created by the user in the Boomi GUI and resolved through Connection Discovery (`BOOMI_THINKING.md`) — do not author OAuth connection XML. Never re-push a pulled OAuth connection: the `clientSecret` follows the same rule as passwords (Password Encryption above).
 
 ### Preemptive Authentication
 

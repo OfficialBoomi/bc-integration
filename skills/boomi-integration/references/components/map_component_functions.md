@@ -507,7 +507,7 @@ Wire it into the map — the input and output ports both use `key="1"`, so mappi
 - `docCache` is the Document Cache **component ID**; `cacheIndex` is that cache's `CacheIndex/@indexId` value (not a zero-based position).
 - Each Configuration `<Input keyId="…">` binds the input to a specific cache key (the cache's `cacheKey/@id`) — this selects which index key is matched. `<Input>`/`<Output>` `index` matches the function's own port `key`.
 - Each `<Output key="…">` is an element **key in the cache's profile** (not the target profile) — the field pulled from the cached document.
-- **A key matching more than one cached document errors** (`Found more than 1 document in the document cache …`) and fails the map. Use an index that is unique for the key; if you need one-output-per-match fan-out, that is a Document Cache join, not this function.
+- **A key matching more than one cached document errors** (`Found more than 1 document in the document cache …`) and fails the map. Use an index that is unique for the key; if you need one-output-per-match fan-out, that is a Document Cache join, not this function (see `map_component.md` § Document Cache Joins).
 - A no-match returns empty (output fields omitted, no error; the document still flows).
 
 #### SQL Lookup

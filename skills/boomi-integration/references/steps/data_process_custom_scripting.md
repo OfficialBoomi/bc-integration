@@ -179,7 +179,7 @@ InputStream is = dataContext.getStream(i);
 Properties props = dataContext.getProperties(i);
 
 /* Read and modify content */
-String content = new String(is.readAllBytes(), "UTF-8");
+String content = is.getText("UTF-8");
 String modified = content.replace("old", "new");
 
 /* Create new stream from modified content */
@@ -299,7 +299,7 @@ for( int i = 0; i < dataContext.getDataCount(); i++ ) {
     Properties props = dataContext.getProperties(i);
 
     /* Read content */
-    String content = new String(is.readAllBytes(), "UTF-8");
+    String content = is.getText("UTF-8");
 
     /* Replace arbitrary string placeholder ({{...}} is not special Boomi syntax) */
     String modified = content.replace("{{timestamp}}", String.valueOf(System.currentTimeMillis()));
@@ -503,16 +503,18 @@ for( int i = 0; i < dataContext.getDataCount(); i++ ) {
 ```groovy
 /* Read as String (most common) */
 InputStream is = dataContext.getStream(i);
-String content = new String(is.readAllBytes(), "UTF-8");
+String content = is.getText("UTF-8");
 ```
 
 ### Writing New Content
 ```groovy
 /* From String */
-String newContent = "{ \"status\": \"success\" }";
+String newContent = '{ "status": "success" }';
 InputStream newStream = new ByteArrayInputStream(newContent.getBytes("UTF-8"));
 dataContext.storeStream(newStream, props);
 ```
+
+**`$` in double-quoted strings:** Use single quotes for strings that don't need interpolation. When you need interpolation alongside a literal `$`, escape it: `"total: ${amount} — ref C\$ABC"`. Groovy double-quoted strings perform variable interpolation — any `$` followed by a word is resolved as a variable reference. A literal payload like `"C$CBC27B"` fails at execution with `MissingPropertyException`. 
 
 ### JSON Handling
 `groovy.json.JsonSlurper` is available in Boomi's Groovy 2.4 runtime. Prefer Map steps for structured transformations, but JsonSlurper is useful for filtering or conditional logic that Maps can't express.
@@ -568,7 +570,7 @@ for( int i = 0; i < dataContext.getDataCount(); i++ ) {
     Properties props = dataContext.getProperties(i);
 
     try {
-        String content = new String(is.readAllBytes(), "UTF-8");
+        String content = is.getText("UTF-8");
         String result = simpleTransformation(content);  /* Keep simple! */
 
         InputStream newStream = new ByteArrayInputStream(result.getBytes("UTF-8"));

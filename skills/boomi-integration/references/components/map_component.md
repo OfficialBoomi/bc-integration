@@ -11,6 +11,7 @@
 - Regenerating a Mappings Block Is Destructive
 - Mapping Patterns
 - Instance Identifier and Qualifier Mappings
+- Document Cache Joins
 - Observed Patterns
 - Complete Examples
 - Map Functions
@@ -64,7 +65,7 @@ One `Mapping` per leaf field covers every occurrence of a repeating element — 
 - `<Mappings>`: Container for individual field mappings
 - `<Functions/>`: For transformation functions (empty if unused)
 - `<Defaults/>`: For default/fallback values (empty if unused)
-- `<DocumentCacheJoins/>`: For lookups (empty if unused)
+- `<DocumentCacheJoins/>`: Document Cache joins (empty if unused) — see § Document Cache Joins
 
 All four elements must be present even if empty.
 
@@ -328,6 +329,35 @@ Order/Party[Party/Type='Buyer']/Name
 | `toTagListKey` | string | References target profile's `<TagList listKey>` |
 
 Both attributes can coexist on a single Mapping for instanced-to-instanced routing (e.g., EDI qualifiers to XML qualifiers). Each resolves independently against its own profile's tagLists — the `listKey` numbers do not need to match between source and target profiles.
+
+## Document Cache Joins
+
+Adds a Document Cache as a second map source. Source and cache can be any profile types, including different types from each other. Each join looks up cached documents through one cache index, once per occurrence of its `srcParentKey` element; for output behavior see `document_cache_component.md` § Map Lookup Constraints.
+
+```xml
+<Mappings>
+  <Mapping fromKey="3" fromType="profile" toKey="3" toType="profile"/>                      <!-- source profile key -->
+  <Mapping fromCacheJoinKey="1" fromKey="4" fromType="profile" toKey="4" toType="profile"/> <!-- cache profile key -->
+</Mappings>
+<Functions/>
+<Defaults/>
+<DocumentCacheJoins>
+  <DocumentCacheJoin cacheIndex="1" docCache="{DOC_CACHE_COMPONENT_ID}" docCacheJoinId="1">
+    <srcParentKey key="2" tagListKey="0"/>        <!-- lookup scope: the source element that directly contains srcLinkKey -->
+    <CacheKeyJoinValues>
+      <CacheKeyJoinValue cacheKeyId="1" cacheKeyName="id (Root/Object/id)"> <!-- cacheKeyName is display-only -->
+        <srcLinkKey key="4" tagListKey="0"/>      <!-- source element whose value is matched against the cache key -->
+      </CacheKeyJoinValue>
+    </CacheKeyJoinValues>
+  </DocumentCacheJoin>
+</DocumentCacheJoins>
+```
+
+- **A non-zero `fromCacheJoinKey` switches `fromKey` to the cache profile's element keys.** `0` or absent means the map's `fromProfile`. The same key number reads a different field in each namespace.
+- `fromCacheJoinKey` must equal a `docCacheJoinId` in the same map — any integer works as the label. A dangling reference passes push and deploy, then fails the execution with a bare `NullPointerException` (Issue #47 in `references/guides/boomi_error_reference.md`).
+- `cacheIndex` is the cache's `CacheIndex/@indexId`; every `cacheKey/@id` in that index needs a `CacheKeyJoinValue` with a matching `cacheKeyId`.
+- **Set `srcParentKey` to the element that directly contains `srcLinkKey`.** JSON: the `Object` inside the array's `ArrayElement` (the `ArrayElement` also works). XML: the repeating element. Flat file: `Elements`, not `Record`.
+- A broader scope — the root, an array or list container, a flat file `Record`, or `key="0"` — pairs every matched cached document with every source record, including records whose key matches nothing. Push, deploy and execution all succeed, and a single-record source gives the correct result, so test with at least two records whose keys match different cached documents (Issue #48 in `references/guides/boomi_error_reference.md`).
 
 ## Observed Patterns
 

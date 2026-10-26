@@ -139,6 +139,8 @@ Each Process Property component is listed by `componentId`, with one `<Overridea
 </CrossReferenceOverrides>
 ```
 
+For table structure and credential warning, see `cross_reference_table_component.md`.
+
 ## Extensions Section (ObjectDefinitions)
 
 The `<Extensions>` section is entirely optional and has no effect on runtime behavior, connection overrides, or the Environment Extensions API. It contains GUI-generated metadata about connector types and profile associations.
@@ -176,6 +178,7 @@ When constructing payloads, prefer `boomi-extensions.sh get` → modify → `set
 - **Connection or operation field** — send `{"useDefault": true}` on the field with no `value` key.
 - **Process-property-component value** — send `{"key":"…","useDefault":true}` on the property value.
 - **DPP** — send the property entry with no `value` key (e.g. `{"name":"DPP_X"}`).
+- **Cross-reference table** — send `{"overrideValues": false}` on the entry (no `CrossReferenceRows` key needed). Reverts to the table revision in the deployed package.
 
 ### Setting a value: never pair it with `"useDefault": true`
 
@@ -209,5 +212,15 @@ Cross-reference tables are standalone platform components, if editing they'll be
 {"crossReferences":{"crossReference":[{"id":"{crossRefTableId}","name":"Country Codes","overrideValues":true,"CrossReferenceRows":{"row":[{"ref1":"SG","ref2":"VALUE_C"}]}}]}}
 ```
 
-`"overrideValues": false` reverts to the table revision in the deployed package.
+Each write replaces the entire cross-reference entry — there is no field-level partial update within an entry. Always include `CrossReferenceRows` when setting `overrideValues: true`.
+
+To clear an override and revert to the table revision in the deployed package:
+
+```json
+{"crossReferences":{"crossReference":[{"id":"{crossRefTableId}","name":"Country Codes","overrideValues":false}]}}
+```
+
+`CrossReferenceRows` is not required when clearing. After clearing, the entry persists in GET with `overrideValues: false` and an empty `CrossReferenceRows`.
+
+**Never send `overrideValues: true` without `CrossReferenceRows`.** The platform activates an empty override table and all lookups silently return no value.
 

@@ -9,6 +9,7 @@
 - Instance Identifiers and Qualifiers
 - Common Patterns
 - Key Generation Rules
+- Output Serialization
 - Critical Notes
 - Large Profiles (WSDL/SOAP)
 - Example: Simple API Response
@@ -212,6 +213,7 @@ XMLProfile element ordering:
 | `elementKey` | int | Key of the repeating element this instance identifier applies to |
 | `listKey` | int | Unique identifier for this TagList (referenced by maps as `fromTagListKey` / `toTagListKey`) |
 | `parentListKey` | int | For nested instances: `listKey` of the parent TagList this child nests within. Default `-1` (no parent) |
+| `refListKey` | int | Default `-1` (none). Only on an auto-added child TagList — see Auto-Added Child TagLists |
 
 ### TagExpression Attributes
 
@@ -224,6 +226,17 @@ XMLProfile element ordering:
 The `<identifierValue>` child element holds:
 - For `identifierType="value"`: the qualifier string to match
 - For `identifierType="occurrence"`: a 1-based positional selector — `"1"` for first, `"2"` for second, `"-1"` for last. `"0"` is invalid and causes a silent map failure
+
+### Auto-Added Child TagLists
+
+```xml
+<TagList listKey="3" parentListKey="1" refListKey="2"/>
+```
+
+An auto-added child TagList has no `elementKey` and no `GroupingExpression`. It selects instances matching TagList 2 that sit inside an instance matching TagList 1 — the same instances as a defined child TagList (one with its own `elementKey`) with `parentListKey="1"`. The Boomi UI generates auto-added child TagLists; a TagList without `elementKey` is one of these, not an unqualified instance — resolve it through `parentListKey` and `refListKey`.
+
+- `parentListKey` can name another auto-added child TagList, qualifying a third level.
+- As `toTagListKey`, an auto-added child TagList writes both the parent's and the child's qualifier values. A defined child TagList writes only its own, and the parent's qualifier element is omitted.
 
 ### Map Integration
 
@@ -253,6 +266,23 @@ Often includes envelope/body wrapper:
 - Keys must be unique across the entire profile
 - Start from 1 and increment sequentially
 - When adding nested elements, continue the sequence (don't restart at 1)
+
+## Output Serialization
+
+A map writing to an XML profile produces output with a single-quoted XML declaration carrying an explicit `encoding` attribute, followed by a multi-line body with two-space indentation per nesting level and CRLF line endings after the declaration and each element:
+
+```
+<?xml version='1.0' encoding='UTF-8'?>
+<Document>
+  <Name>TestName</Name>
+  <Code>ABC123</Code>
+  <Amount>42</Amount>
+</Document>
+```
+
+The declared `encoding` value tracks the profile's `XMLOptions encoding` attribute (e.g. `iso88591` → `encoding='ISO-8859-1'`); quote style and the multi-line/indented structure do not change with it.
+
+Any downstream step or consumer expecting one document per line, or a compact/byte-exact wire format, must normalize it first: a `dataprocessreplace` with `texttofind="[\r\n]"` and `replacewith=""` removes line breaks, and a second pass with `texttofind=">\s+<"` and `replacewith="><"` collapses inter-tag whitespace. See `data_process_step.md`'s Search/Replace section for the attribute reference.
 
 ## Critical Notes
 - `isNode="true"` for XML elements; XML attributes use a nested `<XMLAttribute>` (see § XML Attributes), not `isNode="false"`

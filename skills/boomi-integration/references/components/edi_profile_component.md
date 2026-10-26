@@ -895,7 +895,7 @@ EdiProfile element ordering:
 | `elementKey` | int | Key of the loop this instance identifier applies to |
 | `listKey` | int | Unique identifier for this TagList (referenced by maps as `fromTagListKey` / `toTagListKey`) |
 | `parentListKey` | int | For nested instances: `listKey` of the parent TagList this child nests within. Default `-1` (no parent) |
-| `refListKey` | int | Default `-1` (none). **Never use** — silently suppresses all data for tagged instances in every tested context (sibling and nested loops). Likely vestigial or reserved for unimplemented functionality. Use `parentListKey` for nested scoping instead |
+| `refListKey` | int | Default `-1` (none). Only on an auto-added child TagList (no `elementKey`, no `GroupingExpression`), which selects instances of the `refListKey` TagList inside instances of the `parentListKey` TagList. For target-side behavior and chaining, see Auto-Added Child TagLists in `xml_profile_component.md`. **On a TagList with its own `elementKey`, `refListKey` is accepted on push, but the map reads no data through that TagList** |
 
 **elementKey must reference a loop, not a segment.** When `elementKey` points to a segment within a loop, the engine treats each qualified segment as a separate repeating unit — producing separate output documents per instance instead of combining them into one document. Worse, sibling segments within the loop (e.g., N3/N4 address data alongside an N1 segment) are excluded from scope entirely, causing silent data loss with no error message. Always use the containing loop's key.
 

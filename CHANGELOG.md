@@ -1,5 +1,81 @@
 # Changelog
 
+## 1.0.102
+
+- Warn that CRT values and overrides are plain text; link CRT and extension docs
+
+
+## 1.0.101
+
+- Reconcile MCP single-Return-Documents requirement with converging-outcomes layout rule
+
+
+## 1.0.100
+
+- Document Partner / Sub-Account environment variables
+
+
+## 1.0.99
+
+- Document cross-reference table override clearing in environment extensions
+
+
+## 1.0.98
+
+- Document Cache joins in maps
+
+
+## 1.0.97
+
+- Add XSLT Stylesheet component and Data Process XSLT Transformation step reference
+
+
+## 1.0.96
+
+- Document auto-added child TagLists in the XML and EDI profile references
+
+
+## 1.0.95
+
+- JSON profiles: mark mandatory entries with `required="true"`
+
+
+## 1.0.94
+
+- REST Client: OAuth 2.0 connections are set up by the user in the GUI; never re-push a pulled OAuth connection
+
+
+## 1.0.93
+
+- Document the serialized output shape of a map writing to an XML profile (prolog, indentation, line endings) in `xml_profile_component.md`
+
+
+## 1.0.92
+
+- Add `usage()` and `--help` to the remaining `boomi-integration` CLI scripts that lacked them
+
+
+## 1.0.91
+
+- Add `$` interpolation caution for double-quoted Groovy strings in Data Process reference
+- Replace `readAllBytes()` (Java 9+) with `is.getText("UTF-8")` (all Java versions) in Data Process examples
+
+
+## 1.0.90
+
+- Add SFTP Known Host Entry (host key pinning) guidance
+
+
+## 1.0.89
+
+- Add SFTP connector references: connection, Write/Read/List operations, and connector step
+
+
+## 1.0.88
+
+- Document Windows OS prerequisites
+
+
 ## 1.0.87
 
 - Map Script components: document that `useComponent="true"` runs the component's script and ignores the map's embedded script; reference example now uses an empty `<ScriptToExecute/>`

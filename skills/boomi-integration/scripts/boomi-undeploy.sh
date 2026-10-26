@@ -1,9 +1,36 @@
 #!/usr/bin/env bash
-# Remove Boomi deployments from a runtime environment
-# Usage: bash scripts/boomi-undeploy.sh <deploymentId>
-#        bash scripts/boomi-undeploy.sh --by-component <file_path>
+# Remove Boomi deployments from a runtime environment. See usage() / --help.
 
 source "$(dirname "$0")/boomi-common.sh"
+
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  bash scripts/boomi-undeploy.sh <deploymentId>
+  bash scripts/boomi-undeploy.sh --by-component <file_path>
+
+Removes a Boomi deployment from a runtime environment.
+
+Arguments:
+  <deploymentId>           Deployment ID to remove.
+
+Options:
+  --by-component <path>    Local component XML; resolves the active
+                           deployment for that component in the target
+                           environment, then removes it.
+  -h, --help               Show this help and exit.
+
+Environment: BOOMI_ENVIRONMENT_ID (or BOOMI_DEPLOYMENT_ENVIRONMENT_ID) must
+be set — this is the environment undeployed from.
+
+Side effects: removes the deployment from the platform.
+EOF
+}
+
+# Answer --help and a bare invocation before load_env, which needs a workspace .env.
+[[ $# -eq 0 ]] && { usage; exit 1; }
+if wants_help "--by-component" "$@"; then usage; exit 0; fi
+
 load_env
 require_env BOOMI_API_URL BOOMI_USERNAME BOOMI_API_TOKEN BOOMI_ACCOUNT_ID
 require_tools curl jq
@@ -15,7 +42,8 @@ BY_COMPONENT=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --by-component)  BY_COMPONENT="$2"; shift 2 ;;
-    -*)              echo "Unknown option: $1" >&2; exit 1 ;;
+    -h|--help)       usage; exit 0 ;;
+    -*)              echo "Unknown option: $1" >&2; usage; exit 1 ;;
     *)               DEPLOYMENT_ID="$1"; shift ;;
   esac
 done
@@ -82,9 +110,7 @@ fi
 
 # --- Undeploy by deployment ID ---
 if [[ -z "$DEPLOYMENT_ID" ]]; then
-  echo "Usage:" >&2
-  echo "  bash scripts/boomi-undeploy.sh <deploymentId>" >&2
-  echo "  bash scripts/boomi-undeploy.sh --by-component <file_path>" >&2
+  usage
   exit 1
 fi
 

@@ -286,6 +286,8 @@ The only remedy is giving each outcome its own target step:
 - **Interpose one inert Notify per outcome** before the shared step (preferred). The shared step is retained, so the process's return contract is unchanged, and documents pass through unaltered, at a small fixed log cost (see `steps/notify_step.md`). Two lines converging on the shared step from *different* steps render cleanly — the defect is specific to two lines leaving *one* step for one target.
 - **Or give each outcome its own terminal step**, when the outcomes should be independently addressable. See `steps/return_documents_step.md` for the return-contract consequence.
 
+**MCP server processes and convergence:** MCP server processes must end with a single Return Documents step. When multiple operation branches converge on that shared terminal through a multi-outcome step (Route, Branch, Business Rules), the inert-Notify remedy is the only option — splitting to multiple Return Documents steps is not valid. A chain of Decisions avoids it when each Decision's outcomes lead to different targets, because lines from different steps converge cleanly.
+
 A converged step is entered **once per inbound outcome**, not once with the merged set — two outcomes arriving means two separate executions of that step, each with its own documents. Relevant when the shared step is order- or batch-sensitive (e.g. a `combined="true"` Message step).
 
 ### Terminal Steps (Return Documents vs Stop)

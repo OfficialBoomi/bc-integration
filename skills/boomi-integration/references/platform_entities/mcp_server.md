@@ -122,6 +122,8 @@ Components must be created in this order:
 [Return Documents] ←──────────────────┘
 ```
 
+The process must end with a single Return Documents step — all branches converge to it. For converging outcomes, see `BOOMI_THINKING.md` § Converging Outcomes.
+
 ## Client Configuration
 
 ### Claude Desktop
