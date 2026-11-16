@@ -109,6 +109,10 @@ When a process calls a subprocess:
 - **`purgeDataImmediately`**: Parent's setting takes precedence.
 - **`updateRunDates`**: Each process tracks independently.
 
+### Run Schedule
+
+The run schedule is not part of the component, and a newly deployed process has none. Set it after deploying with `boomi-schedule.sh`.
+
 ### XML Examples
 
 #### Scheduled / No Data Process

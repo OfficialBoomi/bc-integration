@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.0.107
+
+- boomi-deploy.sh prints packaged component count and ids
+
+
+## 1.0.106
+
+- Fix `hash_file` when `shasum` is missing (tries `sha256sum`, `shasum`, then `openssl`)
+
+
+## 1.0.105
+
+- Add `boomi-schedule.sh` to get, set, and enable/disable process run schedules
+
+
+## 1.0.104
+
+- `boomi-wss-test.sh`: add `--max-time` (default 60s); report client timeouts and request failures
+
+
 ## 1.0.103
 
 - Genericize Claude-specific references

@@ -30,6 +30,7 @@ Specialized bash tools handle different aspects of the development lifecycle. Al
 **Deployment & Testing**:
 - **boomi-deploy.sh**: Deploy processes to runtime environments
 - **boomi-undeploy.sh**: Remove deployments by ID or by component file (`--by-component`)
+- **boomi-schedule.sh**: Get, set, and enable/disable run schedules for a deployed process
 - **boomi-test-execute.sh**: Trigger process execution via platform API and return execution ID
 - **boomi-wss-test.sh**: Test WSS listener endpoints directly via the shared web server
 - **boomi-execution-query.sh**: Query execution records and download logs for any process type (including WSS listeners, manually executed processes, scheduled processes). `--logs` also requires `unzip`, since logs arrive as a zip archive; it exits non-zero with a diagnostic when `unzip` is absent or the log cannot be extracted, rather than reporting an empty log.
@@ -89,6 +90,20 @@ bash <skill-path>/scripts/boomi-execution-query.sh [--process-id <guid>] [--stat
 
 # Download logs for a specific execution
 bash <skill-path>/scripts/boomi-execution-query.sh --execution-id <execution-id> --logs
+
+# Schedule a deployed process (replaces all its schedules and its retry schedule; other specs in --help)
+bash <skill-path>/scripts/boomi-schedule.sh set --process-id <guid> --every-minutes 1
+
+# Edit existing schedules: get → change the JSON → set it back
+bash <skill-path>/scripts/boomi-schedule.sh get --process-id <guid> > active-development/schedule.json
+bash <skill-path>/scripts/boomi-schedule.sh set --process-id <guid> --file active-development/schedule.json
+```
+
+**Raw schedule JSON** (`set --file <path>`) — for anything the simple specs can't express: `{"Schedule":[...]}` with an optional `"Retry": {"maxRetry": 1-5, "Schedule":[...]}`. The script injects the ids.
+
+Each entry takes `years`, `months`, `daysOfMonth`, `daysOfWeek` (1 = Sunday … 7 = Saturday), `hours`, and `minutes` as cron-style strings: `*`, `a-b` ranges, `,` lists, and `/n` steps on a range (`0-59/15` = :00, :15, :30, :45). Example — every 15 minutes, 08:00-18:59, Monday-Friday:
+```json
+{"Schedule":[{"years":"*","months":"*","daysOfMonth":"*","daysOfWeek":"2-6","hours":"8-18","minutes":"0-59/15"}]}
 ```
 
 **Component Search** (discovery primitive — results land in `active-development/inventories/component_search_<timestamp>.json` for later reference):

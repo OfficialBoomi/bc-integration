@@ -18,6 +18,9 @@ Options:
   --deployment-notes <text>  Notes recorded on the deployment
   --list-environments        List environments and exit
 
+Output: after packaging, prints the packaged component count and ids. A failed
+manifest read warns and the deploy continues.
+
 Branch: taken from the XML's branchId, then sync state. Neither present sends no
 branch identifier, which resolves to the account default branch. Deploying from a
 branch needs no merge to main.
@@ -227,6 +230,21 @@ echo "Packaged as ${package_id}"
 # The response's branchName only echoes the request; componentVersion is what shipped.
 packaged_version=$(echo "$RESPONSE_BODY" | jq -r '.componentVersion // empty')
 echo "Packaged component version ${packaged_version:-unknown}"
+
+# Packaged component list
+manifest_url="$(build_api_url "PackagedComponentManifest/${package_id}" false)"
+boomi_api -X GET "$manifest_url" -H "Accept: application/json" || true
+if [[ "$RESPONSE_CODE" == "200" ]] && manifest_ids=$(echo "$RESPONSE_BODY" | jq -r '.componentInfo[]?.id' 2>/dev/null); then
+  manifest_count=$(echo "$manifest_ids" | grep -c . || true)
+  if (( manifest_count > 0 )); then
+    echo "Packaged ${manifest_count} component(s):"
+    echo "$manifest_ids" | sed 's/^/  /'
+  else
+    echo "Packaged 0 component(s)"
+  fi
+else
+  echo "WARNING: Could not read package manifest (HTTP ${RESPONSE_CODE}); continuing" >&2
+fi
 
 # --- Step 2: Deploy the package ---
 echo "Deploying to environment ${env_id}"

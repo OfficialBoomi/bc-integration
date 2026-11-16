@@ -821,7 +821,16 @@ write_sync_state() {
 
 # SHA-256 hash of a file
 hash_file() {
-  shasum -a 256 "$1" | cut -d' ' -f1
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum < "$1" | cut -d' ' -f1
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | cut -d' ' -f1
+  elif command -v openssl >/dev/null 2>&1; then
+    openssl dgst -sha256 "$1" | awk '{print $NF}'
+  else
+    echo "Error: no SHA-256 tool found (sha256sum, shasum, or openssl)" >&2
+    return 1
+  fi
 }
 
 # --- Activity logging ---

@@ -188,7 +188,12 @@ bash <skill-path>/scripts/boomi-wss-test.sh --path /ws/simple/createUser --metho
 
 # POST with payload from file
 bash <skill-path>/scripts/boomi-wss-test.sh --path /ws/simple/createOrder --method POST --data payload.json
+
+# Cold runtime (first call after deploying a process or custom connector)
+bash <skill-path>/scripts/boomi-wss-test.sh --path /ws/simple/createOrder --data payload.json --max-time 120
 ```
+
+The client timeout defaults to 60s. A `CLIENT TIMEOUT` does not mean the process failed. Check `boomi-execution-query.sh` before re-running.
 
 Do not use raw curl for WSS endpoint testing — it will be blocked by project permission settings. 
 

@@ -9,7 +9,7 @@ source "$(dirname "$0")/boomi-common.sh"
 usage() {
   cat >&2 <<'EOF'
 Usage:
-  bash scripts/boomi-wss-test.sh --path /ws/simple/createOrder [--method POST] [--data '{"key":"val"}' | --data file.json] [--content-type application/xml]
+  bash scripts/boomi-wss-test.sh --path /ws/simple/createOrder [--method POST] [--data '{"key":"val"}' | --data file.json] [--content-type application/xml] [--max-time 60]
 
 Tests a WSS listener endpoint via the shared web server.
 
@@ -20,6 +20,7 @@ Options:
   --method <METHOD>       HTTP method (default: POST)
   --data <string|file>    Request body, inline or a path to a file
   --content-type <type>   Request Content-Type (default: application/json)
+  --max-time <seconds>    Client timeout in seconds (default: 60)
   -h, --help              Show this help and exit.
 
 Auth selection from .env:
@@ -38,7 +39,7 @@ EOF
 
 # Answer --help and a bare invocation before load_env, which needs a workspace .env.
 [[ $# -eq 0 ]] && { usage; exit 1; }
-if wants_help "--path --data --method --content-type" "$@"; then usage; exit 0; fi
+if wants_help "--path --data --method --content-type --max-time" "$@"; then usage; exit 0; fi
 
 load_env
 require_tools curl
@@ -48,6 +49,7 @@ WSS_PATH=""
 DATA=""
 METHOD="POST"
 CONTENT_TYPE="application/json"
+MAX_TIME=60
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -55,6 +57,7 @@ while [[ $# -gt 0 ]]; do
     --data)         DATA="$2"; shift 2 ;;
     --method)       METHOD="$2"; shift 2 ;;
     --content-type) CONTENT_TYPE="$2"; shift 2 ;;
+    --max-time)     MAX_TIME="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     -*)       echo "Unknown option: $1" >&2; usage; exit 1 ;;
     *)        echo "Unknown argument: $1" >&2; usage; exit 1 ;;
@@ -63,6 +66,11 @@ done
 
 if [[ -z "$WSS_PATH" ]]; then
   usage
+  exit 1
+fi
+
+if [[ ! "$MAX_TIME" =~ ^[1-9][0-9]*$ ]]; then
+  echo "ERROR: --max-time must be a positive whole number of seconds (got '${MAX_TIME}')" >&2
   exit 1
 fi
 
@@ -127,7 +135,7 @@ ssl_flag=""
 
 # --- Build curl args ---
 curl_args=($ssl_flag -s -w "\n--- HTTP %{http_code} (%{time_total}s) ---" \
-  --max-time 30 -A "$BOOMI_USER_AGENT" -X "$METHOD")
+  --max-time "$MAX_TIME" -A "$BOOMI_USER_AGENT" -X "$METHOD")
 
 auth_cfg=""
 case "$auth_type" in
@@ -148,5 +156,12 @@ url="${SERVER_BASE_URL}${WSS_PATH}"
 banner="auth=${auth_type}"
 $auth_inferred && banner="${banner} (inferred — set SERVER_AUTH_TYPE in .env to declare explicitly)"
 echo "Testing: ${METHOD} ${url}  (${banner})"
-printf '%s' "$auth_cfg" | curl "${curl_args[@]}" "$url" 2>/dev/null; true
+printf '%s' "$auth_cfg" | curl "${curl_args[@]}" "$url" 2>/dev/null && curl_rc=0 || curl_rc=$?
 echo ""
+# curl exit 28: client timeout.
+if [[ $curl_rc -eq 28 ]]; then
+  echo "CLIENT TIMEOUT after ${MAX_TIME}s. The process may still have run; check boomi-execution-query.sh before retrying." >&2
+elif [[ $curl_rc -ne 0 ]]; then
+  echo "REQUEST FAILED (curl exit ${curl_rc}). No HTTP response." >&2
+fi
+true

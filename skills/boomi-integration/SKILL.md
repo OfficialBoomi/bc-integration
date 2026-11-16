@@ -230,6 +230,7 @@ Default to local `references/` — curated for this skill. Beyond it, don't answ
     ├── boomi-component-push.sh  # Update existing components with local changes
     ├── boomi-component-pull.sh  # Download components with dependency resolution
     ├── boomi-deploy.sh          # Deploy components to runtime environment
+    ├── boomi-schedule.sh        # Get/set/enable/disable process run schedules
     ├── boomi-test-execute.sh    # Trigger process execution via platform API
     ├── boomi-wss-test.sh        # Test WSS listener endpoints via shared web server
     ├── boomi-shared-server-info.sh # Fetch atom apiType, url, minAuth — run before authoring any listener
@@ -384,6 +385,9 @@ Specialized tools handle the development lifecycle. All tools are bash scripts (
 
 - `boomi-undeploy.sh` - Remove deployments from a runtime environment
     - Modes: `<deploymentId>` (direct removal), `--by-component <file_path>` (lookup and remove via component file)
+
+- `boomi-schedule.sh` - Get, set, and enable/disable run schedules for a deployed process
+    - A newly deployed process has no schedule; set one here after deploying
 
 - `boomi-test-execute.sh` - Trigger process execution via platform API and return execution ID
     - Required: `--process-id`
